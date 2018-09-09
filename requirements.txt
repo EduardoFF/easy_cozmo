@@ -1,4 +1,4 @@
 numpy==1.15.1
-cozmo==1.4.5.dev0
+cozmo==1.4.4
 
 
