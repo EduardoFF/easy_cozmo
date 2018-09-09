@@ -41,16 +41,20 @@ def scan_for_any_teammate(angle=360,scan_speed=_df_scan_face_speed, ignore_list=
         rotation.  As a result, Cozmo should keep seeing the cube
         after it stops.
 
-        :param angle: Angle to scan
+        :param angle: Angle to scan (in degrees)
         :type angle: float
 
         ..  note::
 
           If the angle is positive, Cozmo rotates in clockwise order. A negative angle is a counter clockwise rotation.
 
-        :return: True (suceeded) or False (failed).
+        :return: True (suceeded) or False (failed)
         """
         robot = mindcraft._mycozmo
+
+        #make positive angle cw
+        angle *= -1
+        
         print("going to start looking for familiar faces")
         action = robot.turn_in_place(degrees(angle), speed=scan_speed)
         print("started first action ")
@@ -61,13 +65,16 @@ def scan_for_any_teammate(angle=360,scan_speed=_df_scan_face_speed, ignore_list=
                 if action.is_running:
                         action.abort()
                         while action.is_running:
-                                pass
+                                action.abort()
+                                time.sleep(.5)
+                                                                
         except:
                 say_error("Scan faulty")
         if action.is_running:
                 action.abort()
                 while action.is_running:
-                        pass
+                        action.abort()
+                        sleep(.5)
 
 
         face = _get_visible_teammate_face(ignore_list)

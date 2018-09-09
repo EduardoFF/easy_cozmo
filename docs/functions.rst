@@ -31,4 +31,10 @@ Making Cozmo identifying (familiar) faces
    :members:  
    :undoc-members:
 
+Misc functions
+---------------------------------------------
+.. automodule:: mindcraft_treasure_hunt_cozmo.robot_utils
+   :members:  
+   :undoc-members:
+
 

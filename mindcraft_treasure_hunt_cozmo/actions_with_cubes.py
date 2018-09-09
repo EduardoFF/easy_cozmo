@@ -76,7 +76,9 @@ def scan_for_cube_by_id(angle, cube_id, scan_speed=_df_scan_cube_speed,
         :return: True (suceeded) or False (failed).
 
         """
-                
+
+        # makes positive angles cw 
+        angle *= -1
         robot = mindcraft._mycozmo
         if _df_forget_old_when_scanning_cubes:
                 for obj in robot.world._objects.values():
@@ -92,12 +94,14 @@ def scan_for_cube_by_id(angle, cube_id, scan_speed=_df_scan_cube_speed,
                 if action.is_completed:
                         break
         try:
-                if not action.is_completed:
+                while action.is_running:
                         action.abort()
-                        while not action.is_completed:
-                                time.sleep(.1)
+                        time.sleep(.5)
                                 
-        except:
+        except Exception as e:
+                import traceback
+                print(e)
+                traceback.print_exc()
                 say_error("Scan faulty")
         cube = _get_visible_cube_by_id(cube_id)
         if not cube:
@@ -197,13 +201,14 @@ def double_scan_for_any_cube(angle, scan_speed=_df_scan_cube_speed,
                         else:
                                 break
         try:
-                if action.is_running:
+                while action.is_running:
                         action.abort()
-                        while action.is_running:
-                                pass                
-        except:
+                        time.sleep(.5)
+        except Exception as e:
+                import traceback
+                print(e)
+                traceback.print_exc()
                 say_error("Scan failed, sorry")
-                pass
         cube = _get_visible_cube()
         if not cube:
                 say_error("Scan for cube  failed")
@@ -347,7 +352,7 @@ def pickup_cube_by_id(cube_id):
                         result = current_action.result
                         print("Pickup Cube failed: code=%s reason='%s' result=%s" % (code, reason, result))
                         say_error("Couldn't pickup, sorry")
-                        action.stop()
+                        action.abort()
                         return False
                 else:
                         return True
