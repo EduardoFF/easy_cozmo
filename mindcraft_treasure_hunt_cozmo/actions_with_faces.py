@@ -7,6 +7,7 @@ from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians
 from .mindcraft_defaults import _df_scan_face_speed
 from . import mindcraft
 from .say import *
+from .say import _say_error
 from .movements import *
 
 def is_any_teammate_visible():
@@ -69,7 +70,10 @@ def scan_for_any_teammate(angle=360,scan_speed=_df_scan_face_speed, ignore_list=
                                 action.abort()
                                 time.sleep(.5)
                                                                 
-        except:
+        except Exception as e:
+                import traceback
+                print(e)
+                traceback.print_exc()
                 say_error("Scan faulty")
         if action.is_running:
                 action.abort()
@@ -80,7 +84,7 @@ def scan_for_any_teammate(angle=360,scan_speed=_df_scan_face_speed, ignore_list=
 
         face = _get_visible_teammate_face(ignore_list)
         if not face:
-                say_error("Oh I can't find any teammate")
+                _say_error("I can't find any teammate, sorry")
                 return False
         return True
     
@@ -119,12 +123,12 @@ def say_something_to_visible_teammate( text_before='', text_after='', *args):
         """
         
         if not _align_with_any_visible_teammate(once=True):
-                say_error("I can't see any teammate")
+                _say_error("I can't see any teammate, sorry")
                 return False
                 
         name = _get_visible_teammate_name()
         if name == "":
-                say_error("Oh I can't identify teammate. Sorry")
+                _say_error("I can't identify teammate, sorry")
                 return False
         
         text_after = text_after + ' '.join(map(str, args))

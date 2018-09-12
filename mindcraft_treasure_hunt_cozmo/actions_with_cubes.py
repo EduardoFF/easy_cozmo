@@ -9,6 +9,8 @@ import asyncio
 from cozmo.objects import LightCubeIDs
 
 from .say import *
+from .say import _say_error
+
 from . import mindcraft
 from .movements import *
 import numpy as np
@@ -46,10 +48,19 @@ def _cube_three():
 
 
 def _get_visible_cube(ignore_list=None):
+        robot = mindcraft._mycozmo
         try:
                 for visible_object in mindcraft._mycozmo.world.visible_objects:
                     if  isinstance(visible_object, cozmo.objects.LightCube):
+                            
                             if ignore_list is None or visible_object.cube_id not in ignore_list:
+                                    translation = robot.pose - visible_object.pose
+                                    dst = translation.position.x ** 2 + translation.position.y ** 2
+                                    dst = dst ** 0.5
+                                    if _df_use_distance_threshold_for_cubes:
+                                        if dst > _df_distance_threshold_for_cubes:
+                                                continue
+
                                     return visible_object
         except:
                 pass
@@ -57,10 +68,17 @@ def _get_visible_cube(ignore_list=None):
 
 def _get_visible_cubes(ignore_list=None):
         cubes = []
+        robot = mindcraft._mycozmo
         try:
-                for visible_object in mindcraft._mycozmo.world.visible_objects:
+                for visible_object in robot.world.visible_objects:
                     if  isinstance(visible_object, cozmo.objects.LightCube):
                             if ignore_list is None or visible_object.cube_id not in ignore_list:
+                                    translation = robot.pose - visible_object.pose
+                                    dst = translation.position.x ** 2 + translation.position.y ** 2
+                                    dst = dst ** 0.5
+                                    if _df_use_distance_threshold_for_cubes:
+                                        if dst > _df_distance_threshold_for_cubes:
+                                                continue
                                     cubes.append(visible_object)
         except:
                 pass
@@ -117,10 +135,10 @@ def scan_for_cube_by_id(angle, cube_id, scan_speed=_df_scan_cube_speed,
                 import traceback
                 print(e)
                 traceback.print_exc()
-                say_error("Scan faulty")
+                say_error("Scan failed")
         cube = _get_visible_cube_by_id(cube_id)
         if not cube:
-                say_error("Scan for cube "+str(cube_id) +" failed")
+                _say_error("I couldn't find cube "+str(cube_id) +" sorry")
                 return False
         else:
                 for i in range(3):
@@ -128,7 +146,7 @@ def scan_for_cube_by_id(angle, cube_id, scan_speed=_df_scan_cube_speed,
                         if cube.pose.origin_id != -1:
                                 break
                 if cube.pose.origin_id == -1:
-                        say_error("Scan for cube "+str(cube_id) +" failed, can't locate cube")
+                        _say_error("I couldn't localize cube "+str(cube_id) +" sorry")
                         return False
 
         return True
@@ -227,7 +245,7 @@ def double_scan_for_any_cube(angle, scan_speed=_df_scan_cube_speed,
                 say_error("Scan failed, sorry")
         cube = _get_visible_cube()
         if not cube:
-                say_error("Scan for cube  failed")
+                _say_error("I couldn't see a cube, sorry")
                 if headlight_switching_enabled:
                         robot.set_head_light(head_light_enabled)
                 return False
@@ -237,7 +255,7 @@ def double_scan_for_any_cube(angle, scan_speed=_df_scan_cube_speed,
                         if cube.pose.origin_id != -1:
                                 break
                 if cube.pose.origin_id == -1:
-                        say_error("Scan failed, can't localize cube")
+                        _say_error("I saw a cube, but I couldn't localize it, sorry")
                         if headlight_switching_enabled:
                                 robot.set_head_light(head_light_enabled)
                         return False
@@ -312,7 +330,7 @@ def align_with_nearest_cube(distance= _df_align_distance,
         robot = mindcraft._mycozmo           
         cubes = _get_visible_cubes()
         if len(cubes)==0:
-                say_error("Can't align, I can't see any cube")
+                _say_error("I can't align, I can't see any cube")
                 return False
         # find nearest one
         min_dst, targ = -1, None
@@ -327,11 +345,11 @@ def align_with_nearest_cube(distance= _df_align_distance,
                         min_dst, targ = dst, cube
 
         if not targ:
-                say_error("Can't align, I can't see any nearby cube")
+                _say_error("I can't align, I can't see any nearby cube")
                 return False
         cube = targ
         if cube.pose.origin_id == -1:
-                say_error("Can't align, I can't localize the nearest cube")
+                _say_error("I can't align, I can't localize the nearest cube")
                 return False
         nearest_face = _find_nearest_face(cube)
         print("Aligning with cube's nearest face ", nearest_face)
@@ -368,13 +386,14 @@ def pickup_cube_by_id(cube_id):
         
         from .actions_with_cubes import _get_visible_cube_by_id
         if cube_id not in [1,2,3]:
-                say_error("Cube id not good")
+                say_error("Cube id " + str(cube_id) + " not good")
                 return False
         mindcraft._mycozmo.set_head_angle(degrees(0)).wait_for_completed()
         mindcraft._mycozmo.set_head_light(False)
         cube = _get_visible_cube_by_id(cube_id)
 #        robot.abort_all_actions()
         if not cube:
+                _say_error("I can't see cube ", cube_id)
                 return False
         action=None
         try:
@@ -384,14 +403,14 @@ def pickup_cube_by_id(cube_id):
                         code, reason = current_action.failure_reason
                         result = current_action.result
                         print("Pickup Cube failed: code=%s reason='%s' result=%s" % (code, reason, result))
-                        say_error("Couldn't pickup, sorry")
+                        _say_error("I couldn't pickup the cube ", cube_id, " sorry")
                         action.abort()
                         return False
                 else:
                         return True
         except:
                 pass
-        say_error("Couldn't pickup, sorry")
+        _say_error("I couldn't pickup cube ", cube_id, " sorry")
         return False
 
 def pickup_cube_one():

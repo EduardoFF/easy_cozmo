@@ -1,3 +1,19 @@
+def _say_error(errormsg, *args):
+    """**Say "ERROR" followed by a message**
+
+    Cozmo will indicate using its voice that an error occurred.  It
+    also prints a message in the console indicating the error
+    message.
+
+    :return: True (suceeded) or False (failed)
+    """
+    from .mindcraft import _mycozmo
+    
+    #errormsg = "ERROR, "+errormsg
+    errormsg = errormsg + ' '.join(map(str, args))
+    print("ERROR ",errormsg)
+    _mycozmo.say_text(errormsg).wait_for_completed()
+    
 def say_error(errormsg):
     """**Say "ERROR" followed by a message**
 

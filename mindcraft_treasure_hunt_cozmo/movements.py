@@ -3,7 +3,7 @@
 from cozmo.util import degrees, Pose
 import cozmo
 from . import mindcraft
-
+from .say import _say_error, say_error
 from .mindcraft_defaults import  _df_reverse_speed, \
     _df_rotate_speed
 
@@ -17,8 +17,11 @@ def rotate_in_place(angle):
     """
      try:
          mindcraft._mycozmo.turn_in_place(degrees(-1*angle),speed=_df_rotate_speed).wait_for_completed()
-     except:
-         say_error("Can't rotate, sorry")
+     except Exception as e:
+         import traceback
+         print(e)
+         traceback.print_exc()
+         say_error("I can't rotate, sorry")
          return False
      return True
 
@@ -36,20 +39,26 @@ def move_head_up():
             code, reason = current_action.failure_reason
             result = current_action.result
             print("Move head failed: code=%s reason='%s' result=%s" % (code, reason, result))
-            mindcraft.say_error("Couldn't move head, sorry")
+            say_error("I couldn't move my head, sorry")
             try:
                 if action.is_running:
                     action.abort()
                     while action.is_running:
                         action.abort()
                         time.sleep(0.5)
-            except:
+            except Exception as e:
+                import traceback
+                print(e)
+                traceback.print_exc()
                 say_error("Move head faulty")
             return False
         else:
             return True
-    except:
-        mindcraft.say_error("Couldn't move head, sorry")
+    except Exception as e:
+        import traceback
+        print(e)
+        traceback.print_exc()
+        say_error("Couldn't move head, sorry")
     return False
 
 def move_head_straight():
@@ -65,13 +74,15 @@ def move_head_straight():
             code, reason = current_action.failure_reason
             result = current_action.result
             print("Move head failed: code=%s reason='%s' result=%s" % (code, reason, result))
-            mindcraft.say_error("Couldn't pickup, sorry")
-            action.stop()
+            _say_error("I couldn't move my head, sorry")
             return False
         else:
             return True
-    except:
-        mindcraft.say_error("Couldn't pickup, sorry")
+    except Exception as e:
+        import traceback
+        print(e)
+        traceback.print_exc()
+        say_error("I couldn't move my head , sorry")
     return False
     
 def move_lift_down():
@@ -83,14 +94,20 @@ def move_lift_down():
     retval = True
     try:
         action.wait_for_completed()
-    except:
+    except Exception as e:
+        import traceback
+        print(e)
+        traceback.print_exc()
         say_error("I can't move my lift")
         retval=False
     try:
         while action.is_running:
             action.abort()
             time.sleep(.5)
-    except:
+    except Exception as e:
+        import traceback
+        print(e)
+        traceback.print_exc()
         say_error("Scan faulty")
         retval=False
     return retval
@@ -113,7 +130,7 @@ def move_lift_ground():
             action.abort()
             time.sleep(0.5)
     except:
-        say_error("Scan faulty")
+        say_error("Lift faulty")
         retval=False
     return retval
     
@@ -127,13 +144,15 @@ def reverse_in_seconds(duration):
     """
     try:
         mindcraft._mycozmo.drive_wheels(_df_reverse_speed, _df_reverse_speed, duration=2)
-    except:
+    except Exception as e:
         say_error("I can't move in reverse")
         return False
     return True
 
-def move_forward_avoiding_cubes(distance):
-    """**Move forward for a given distance while avoiding any cubes on the way**
+def move_forward_avoiding_obstacles(distance):
+    """**Move forward for a given distance while avoiding cubes and
+    visible objects on the way**
+
     :param duration: Distance in millimeters
     :type duration: float
 
@@ -147,18 +166,18 @@ def move_forward_avoiding_cubes(distance):
             code, reason = current_action.failure_reason
             result = current_action.result
             print("Move forward failed: code=%s reason='%s' result=%s" % (code, reason, result))
-            mindcraft.say_error("Couldn't move forward, sorry")
-
+            say_error("Couldn't move forward, sorry")
             return False
         else:
             return True
-    except:
+    except Exception as e:
+        say_error("Move forward faulty, aborting")
         try:
             while action.is_running:
                 action.abort()
                 time.sleep(.5)
         except:
-            mindcraft.say_error("Move forward faulty")
+            pass
         return False
     return False
 

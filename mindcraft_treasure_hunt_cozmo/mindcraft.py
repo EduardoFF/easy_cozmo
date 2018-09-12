@@ -10,7 +10,7 @@ _mycozmo: cozmo.robot.Robot
 
 _mycozmo = None
 from .initialize_robot import initialize_robot
-    
+from .mindcraft_defaults import _df_image_stream_enabled    
 def _mindcraft_main(robot: cozmo.robot.Robot):
     global _mycozmo
     _mycozmo = robot
@@ -46,8 +46,9 @@ def run_on_cozmo_debug_mode(program):
     :param program: The code that you want to execute on Cozmo
     :type program: python function
     """
-    from .mindcraft_defaults import _df_image_stream_enabled
+
     global _user_program
+    global _df_image_stream_enabled
     _user_program = program
     _df_image_stream_enabled = True
     cozmo.run_program(_mindcraft_main, use_viewer=True)

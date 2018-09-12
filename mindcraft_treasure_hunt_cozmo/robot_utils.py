@@ -1,5 +1,5 @@
 import time
-
+from . import mindcraft
 
 def pause(time_in_seconds):
     """**Pause for certain amount of time in seconds**
@@ -14,4 +14,8 @@ def abort():
     """
     print("Aborting program...")
     raise SystemExit
-    
+def enable_head_light():
+    mindcraft._mycozmo.set_head_light(True)
+def disable_head_light():
+    mindcraft._mycozmo.set_head_light(False)
+
