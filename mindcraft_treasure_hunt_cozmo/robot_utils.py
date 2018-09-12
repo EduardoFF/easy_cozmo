@@ -8,3 +8,10 @@ def pause(time_in_seconds):
     :type time_in_seconds: float
     """
     time.sleep(time_in_seconds)
+    
+def abort():
+    """**Abort the entire program execution**
+    """
+    print("Aborting program...")
+    raise SystemExit
+    

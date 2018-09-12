@@ -1,4 +1,5 @@
 from cozmo.util import radians
+_df_image_stream_enabled = False
 _df_scan_cube_speed = radians(0.2)
 _df_scan_face_speed = radians(0.3)
 _df_pickup_retries=5
@@ -9,4 +10,6 @@ _df_rotate_speed=radians(0.5)
 _df_move_relative_refined=True
 _df_align_refined=True
 _df_align_distance =100
-_df_volume=0.1
+_df_volume=1
+_df_use_distance_threshold_for_cubes = True
+_df_distance_threshold_for_cubes = 500 # in mm

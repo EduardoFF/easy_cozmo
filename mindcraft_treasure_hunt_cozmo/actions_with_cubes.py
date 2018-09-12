@@ -20,7 +20,9 @@ from .mindcraft_defaults import _df_scan_cube_speed,\
         _df_align_refined,\
         _df_forget_old_when_scanning_cubes, \
         _df_pickup_retries, \
-        _df_reverse_speed
+        _df_reverse_speed, \
+        _df_use_distance_threshold_for_cubes, \
+        _df_distance_threshold_for_cubes
 
 def _get_visible_cube_by_id(cube_id):
         ignore_list = set([1,2,3])
@@ -52,6 +54,18 @@ def _get_visible_cube(ignore_list=None):
         except:
                 pass
         return None
+
+def _get_visible_cubes(ignore_list=None):
+        cubes = []
+        try:
+                for visible_object in mindcraft._mycozmo.world.visible_objects:
+                    if  isinstance(visible_object, cozmo.objects.LightCube):
+                            if ignore_list is None or visible_object.cube_id not in ignore_list:
+                                    cubes.append(visible_object)
+        except:
+                pass
+        return cubes
+
 
 def scan_for_cube_by_id(angle, cube_id, scan_speed=_df_scan_cube_speed,
                         use_headlight=_df_use_headlight_for_scan_cube):
@@ -93,6 +107,7 @@ def scan_for_cube_by_id(angle, cube_id, scan_speed=_df_scan_cube_speed,
         while( not _get_visible_cube_by_id(cube_id)):
                 if action.is_completed:
                         break
+                time.sleep(.2)
         try:
                 while action.is_running:
                         action.abort()
@@ -200,6 +215,7 @@ def double_scan_for_any_cube(angle, scan_speed=_df_scan_cube_speed,
                                 action = robot.turn_in_place(scans[cnt_scan],speed=scan_speed)
                         else:
                                 break
+                time.sleep(.2)
         try:
                 while action.is_running:
                         action.abort()
@@ -293,19 +309,36 @@ def align_with_nearest_cube(distance= _df_align_distance,
         :type distance: float
 
         :return: True (suceeded) or False (failed) """
-           
-        cube = _get_visible_cube()
-        if cube is None or not cube:
+        robot = mindcraft._mycozmo           
+        cubes = _get_visible_cubes()
+        if len(cubes)==0:
                 say_error("Can't align, I can't see any cube")
                 return False
+        # find nearest one
+        min_dst, targ = -1, None
+        for cube in cubes:
+                translation = robot.pose - cube.pose
+                dst = translation.position.x ** 2 + translation.position.y ** 2
+                dst = dst ** 0.5
+                if _df_use_distance_threshold_for_cubes:
+                        if dst > _df_distance_threshold_for_cubes:
+                                continue
+                if min_dst < 0 or dst < min_dst:
+                        min_dst, targ = dst, cube
+
+        if not targ:
+                say_error("Can't align, I can't see any nearby cube")
+                return False
+        cube = targ
         if cube.pose.origin_id == -1:
-                say_error("Can't align, I can't localize cube")
+                say_error("Can't align, I can't localize the nearest cube")
+                return False
         nearest_face = _find_nearest_face(cube)
-        print("nearest face ", nearest_face)
+        print("Aligning with cube's nearest face ", nearest_face)
         heading = math.atan2(nearest_face[1], nearest_face[0])
         pose = Pose(-distance*nearest_face[0], -distance*nearest_face[1], 0,
                     angle_z=radians(heading))
-        print("moving to relative pose ", pose)
+        print("Moving to relative pose ", pose)
         return _move_relative_to_cube(cube, pose, refined=refined)
 
 def pickup_cube_by_id(cube_id):

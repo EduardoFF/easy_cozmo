@@ -60,7 +60,8 @@ def scan_for_any_teammate(angle=360,scan_speed=_df_scan_face_speed, ignore_list=
         print("started first action ")
         while( not _get_visible_teammate_face(ignore_list=ignore_list) ):
                 if action.is_completed:
-                    break
+                        break
+                time.sleep(.2)
         try:
                 if action.is_running:
                         action.abort()
@@ -155,6 +156,7 @@ def _is_happy_face(robot, face, timeout=False):
                                 return True
                         if time.time() - start_time > timeout:
                                 break
+                        time.sleep(.2)
         return face.known_expression == FACIAL_EXPRESSION_HAPPY
 
 def _align_with_any_visible_teammate(once=False):
@@ -183,6 +185,7 @@ def _align_with_any_visible_teammate(once=False):
                                 return False
                         if once:
                                 break
+                time.sleep(.2)
         return True
             
 def align_with_any_visible_teammate():
