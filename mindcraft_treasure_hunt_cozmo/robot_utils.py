@@ -14,8 +14,15 @@ def abort():
     """
     print("Aborting program...")
     raise SystemExit
+
 def enable_head_light():
+    """**Enable head light to see in low light conditions**
+    """
+
     mindcraft._mycozmo.set_head_light(True)
 def disable_head_light():
+    """**Disable head light**
+    """
+
     mindcraft._mycozmo.set_head_light(False)
 
