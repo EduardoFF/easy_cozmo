@@ -6,7 +6,7 @@ import math
 import time
 import sys
 import asyncio
-from cozmo.objects import CustomObject
+from cozmo.objects import CustomObject, LightCube
 
 from .say import *
 from .say import _say_error
@@ -15,26 +15,36 @@ from . import mindcraft
 from .movements import *
 import numpy as np
 
-from .mindcraft_defaults import _df_scan_object_speed,\
-        _df_use_headlight_for_scan_object,\
-        _df_move_relative_refined,\
-        _df_align_distance,\
-        _df_align_refined,\
-        _df_forget_old_when_scanning_objects, \
-        _df_reverse_speed, \
-        _df_use_distance_threshold_for_objects, \
-        _df_distance_threshold_for_objects
+from .mindcraft_defaults import df_scan_object_speed,\
+        df_use_headlight_for_scan_object,\
+        df_move_relative_refined,\
+        df_align_distance,\
+        df_align_refined,\
+        df_forget_old_when_scanning_objects, \
+        df_reverse_speed, \
+        df_use_distance_threshold_for_objects, \
+        df_distance_threshold_for_objects
 
-def _get_visible_object():
+_observable_objects = [cozmo.objects.CustomObject, cozmo.objects.LightCube]
+
+def _is_observable_object(object):
+        for object_type in _observable_objects:
+                if  isinstance(object, object_type):
+                        return True
+        return False
+
+def _get_visible_object(valid_object_check=_is_observable_object):
         robot = mindcraft._mycozmo
         try:
                 for visible_object in mindcraft._mycozmo.world.visible_objects:
-                    if  isinstance(visible_object, cozmo.objects.CustomObject):
+                    if  valid_object_check(visible_object):
+                            if visible_object.pose.origin_id == -1:
+                                continue
                             translation = robot.pose - visible_object.pose
                             dst = translation.position.x ** 2 + translation.position.y ** 2
                             dst = dst ** 0.5
-                            if _df_use_distance_threshold_for_objects:
-                                if dst > _df_distance_threshold_for_objects:
+                            if df_use_distance_threshold_for_objects:
+                                if dst > df_distance_threshold_for_objects:
                                         continue
 
                             return visible_object
@@ -42,17 +52,17 @@ def _get_visible_object():
                 pass
         return None
 
-def _get_visible_objects():
+def _get_visible_objects(valid_object_check=_is_observable_object):
         objects = []
         robot = mindcraft._mycozmo
         try:
                 for visible_object in robot.world.visible_objects:
-                    if  isinstance(visible_object, cozmo.objects.CustomObject):
+                    if  valid_object_check(visible_object):
                             translation = robot.pose - visible_object.pose
                             dst = translation.position.x ** 2 + translation.position.y ** 2
                             dst = dst ** 0.5
-                            if _df_use_distance_threshold_for_objects:
-                                if dst > _df_distance_threshold_for_objects:
+                            if df_use_distance_threshold_for_objects:
+                                if dst > df_distance_threshold_for_objects:
                                         continue
                             objects.append(visible_object)
         except:
@@ -60,10 +70,10 @@ def _get_visible_objects():
         return objects
 
 
-def scan_for_object(angle, scan_speed=_df_scan_object_speed,
-                        use_headlight=_df_use_headlight_for_scan_object):
+def _scan_for_object(angle, scan_speed=df_scan_object_speed,
+                     valid_object_check=_is_observable_object):
         
-        """**Rotate in place while looking for an object**
+        """**Rotate in place while looking for an observable object**
 
         This function executes a rotation, with certain angular speed
         and angle, while at the same time looking for an object.  As
@@ -84,17 +94,14 @@ def scan_for_object(angle, scan_speed=_df_scan_object_speed,
         # makes positive angles cw 
         angle *= -1
         robot = mindcraft._mycozmo
-        if _df_forget_old_when_scanning_objects:
+        if df_forget_old_when_scanning_objects:
                 for obj in robot.world._objects.values():
-                        obj.pose.invalidate()
-
-        if use_headlight:
-                robot.set_head_light(True)
-        else:
-                robot.set_head_light(False)
+                        if valid_object_check(obj):
+                                obj.pose.invalidate()
         
-        action = robot.turn_in_place(degrees(angle), speed=scan_speed)
-        while( not _get_visible_object()):
+        action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed))
+        while( not _get_visible_object(valid_object_check)):
+                
                 if action.is_completed:
                         break
                 time.sleep(.2)
@@ -108,9 +115,8 @@ def scan_for_object(angle, scan_speed=_df_scan_object_speed,
                 print(e)
                 traceback.print_exc()
                 say_error("Scan for object failed")
-        object = _get_visible_object()
+        object = _get_visible_object(valid_object_check)
         if not object:
-                _say_error("I couldn't find an object, sorry")
                 return False
         else:
                 for i in range(3):
@@ -118,14 +124,15 @@ def scan_for_object(angle, scan_speed=_df_scan_object_speed,
                         if object.pose.origin_id != -1:
                                 break
                 if object.pose.origin_id == -1:
-                        _say_error("I couldn't localize object, sorry")
                         return False
 
+        print("Found object ", object)
         return True
 
 
-def double_scan_for_object(angle, scan_speed=_df_scan_object_speed,
-                         headlight_switching_enabled=True):
+def _double_scan_for_object(angle, scan_speed=df_scan_object_speed,
+                            valid_object_check = _is_observable_object,
+                            headlight_switching_enabled=True):
 
         """**Symmetric frontal scan for any object**
 
@@ -141,7 +148,7 @@ def double_scan_for_object(angle, scan_speed=_df_scan_object_speed,
         :return: True (suceeded) or False (failed)
         """
         robot = mindcraft._mycozmo
-        if _df_forget_old_when_scanning_objects:
+        if df_forget_old_when_scanning_objects:
                 for obj in robot.world._objects.values():
                         obj.pose.invalidate()
 
@@ -151,15 +158,15 @@ def double_scan_for_object(angle, scan_speed=_df_scan_object_speed,
         robot = mindcraft._mycozmo
         if headlight_switching_enabled:
                 robot.set_head_light(head_light_enabled)
-        action = robot.turn_in_place(scans[cnt_scan], speed=scan_speed)
-        while( not _get_visible_object()):
+        action = robot.turn_in_place(scans[cnt_scan], speed=degrees(scan_speed))
+        while( not _get_visible_object(valid_object_check)):
                 if action.is_completed:
                         head_light_enabled = not head_light_enabled
                         if headlight_switching_enabled:
                                 robot.set_head_light(head_light_enabled)
                         cnt_scan += 1
                         if cnt_scan < len(scans):
-                                action = robot.turn_in_place(scans[cnt_scan],speed=scan_speed)
+                                action = robot.turn_in_place(scans[cnt_scan],speed=degrees(scan_speed))
                         else:
                                 break
                 time.sleep(.2)
@@ -172,7 +179,7 @@ def double_scan_for_object(angle, scan_speed=_df_scan_object_speed,
                 print(e)
                 traceback.print_exc()
                 say_error("Scan failed, sorry")
-        object = _get_visible_object()
+        object = _get_visible_object(valid_object_check)
         if not object:
                 _say_error("I couldn't see a object, sorry")
                 if headlight_switching_enabled:
@@ -192,7 +199,7 @@ def double_scan_for_object(angle, scan_speed=_df_scan_object_speed,
                 robot.set_head_light(head_light_enabled)
         return True
 
-def _move_relative_to_object(object, pose, refined=_df_move_relative_refined):
+def _move_relative_to_object(object, pose, refined=df_move_relative_refined):
         robot = mindcraft._mycozmo
         desired_pose_relative_to_object = pose
         object_pose_relative_to_robot = _get_relative_pose(object.pose, robot.pose)
@@ -206,7 +213,7 @@ def _move_relative_to_object(object, pose, refined=_df_move_relative_refined):
                         desired_pose_relative_to_object)
                         robot.go_to_pose(desired_pose_relative_to_robot, relative_to_robot=True,num_retries=3).wait_for_completed()
         except:
-                say_error("Move action failed, sorry")
+                _say_error("Move action failed, sorry")
                 return False
         return True
 
@@ -231,8 +238,39 @@ def _get_relative_pose(object_pose, reference_frame_pose):
                                        cozmo.util.radians(object_pose.rotation.angle_z.radians + originRotationRadians))
 
 
-def align_with_nearest_object(distance= _df_align_distance,
-                            refined = _df_align_refined):
+def _get_nearest_object(valid_object_check=_is_observable_object):
+        robot = mindcraft._mycozmo           
+        objects = _get_visible_objects(valid_object_check)
+        if len(objects)==0:
+                print("I can't align, I can't see any object")
+                return False
+        # find nearest one
+        min_dst, targ = -1, None
+        for object in objects:
+                if object.pose.origin_id == -1:
+                        continue
+                translation = robot.pose - object.pose
+                dst = translation.position.x ** 2 + translation.position.y ** 2
+                dst = dst ** 0.5
+                if df_use_distance_threshold_for_objects:
+                        if dst > df_distance_threshold_for_objects:
+                                continue
+                if min_dst < 0 or dst < min_dst:
+                        min_dst, targ = dst, object
+
+        if not targ:
+                print("I can't align, I can't see any nearby object")
+                return False
+        object = targ
+        if object.pose.origin_id == -1:
+                print("I can't align, I can't localize the nearest object")
+                return False
+        print("Found nearest object ",object)
+        return object
+
+def _align_with_nearest_object(distance= df_align_distance,
+                              valid_object_check=_is_observable_object,
+                            refined = df_align_refined):
         """**Align with nearest object**
 
         Takes Cozmo toward the nearest object, and aligns to it
@@ -241,30 +279,15 @@ def align_with_nearest_object(distance= _df_align_distance,
         :type distance: float
 
         :return: True (suceeded) or False (failed) """
-        robot = mindcraft._mycozmo           
-        objects = _get_visible_objects()
-        if len(objects)==0:
-                _say_error("I can't align, I can't see any object")
-                return False
-        # find nearest one
-        min_dst, targ = -1, None
-        for object in objects:
-                translation = robot.pose - object.pose
-                dst = translation.position.x ** 2 + translation.position.y ** 2
-                dst = dst ** 0.5
-                if _df_use_distance_threshold_for_objects:
-                        if dst > _df_distance_threshold_for_objects:
-                                continue
-                if min_dst < 0 or dst < min_dst:
-                        min_dst, targ = dst, object
-
-        if not targ:
-                _say_error("I can't align, I can't see any nearby object")
-                return False
-        object = targ
-        if object.pose.origin_id == -1:
-                _say_error("I can't align, I can't localize the nearest object")
-                return False
+        object = _get_nearest_object(valid_object_check)
+        if not object:
+                return
+        # handle special case of cubes that considers nearest face
+        if isinstance(object, LightCube):
+                from .actions_with_cubes import _align_with_cube
+                return _align_with_cube(object, distance=distance, refined=refined)
+                
+                
         heading = 0
         pose = Pose(-distance, 0, 0,
                     angle_z=radians(heading))

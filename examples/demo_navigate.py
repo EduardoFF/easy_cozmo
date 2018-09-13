@@ -1,32 +1,44 @@
-#!/usr/bin/env python3
-
 from mindcraft_treasure_hunt_cozmo import *
 
 
-def my_search_strategy():
-    move_head_straight()
-    if double_scan_for_any_cube(30):
+def find_next_landmark():
+    move_head_looking_forward()
+    if scan_for_landmark(30):
         return True
-    rotate_in_place(90)
-    if double_scan_for_any_cube(30):
+    if scan_for_landmark(-60):
         return True
-    rotate_in_place(-180)
-    if double_scan_for_any_cube(30):
+    rotate_in_place(120)
+    if scan_for_landmark(30):
         return True
+    if scan_for_landmark(-60):
+        return True
+    rotate_in_place(-120)
+    if scan_for_landmark(30):
+        return True
+    if scan_for_landmark(-60):
+        return True
+
     return False
     
 
-def cozmo_program():
+def navigation_with_landmarks():
+    set_volume_low()
+    landmarks = 0
+    total_landmarks = 9
     while(True):
-        say_text("Searching any cube")
-        if not my_search_strategy():
-            say_text("Can't find cube, trying again")
+        say("Searching for the next landmark")
+        if find_next_landmark():
+            if align_with_nearest_landmark():
+                move_forward_avoiding_landmark(25)
+                landmarks = landmarks + 1
+            else:
+                say("Can't align with the landmark, trying again")
+                continue
+        else:
+            say("Can't find a landmark, trying again")
             continue
-        if not align_with_nearest_cube():
-            say_text("Can't align, trying again")
-        move_forward_avoiding_cubes(250)
+        if landmarks == total_landmarks:
+            say("Navigation job done!")
+            break
         
-        
-        
-        
-run_on_cozmo_with_viewer(cozmo_program)
+run_program_with_viewer(navigation_with_landmarks)

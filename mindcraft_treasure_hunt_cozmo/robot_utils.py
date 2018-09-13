@@ -1,6 +1,7 @@
 import time
 from . import mindcraft
 
+
 def pause(time_in_seconds):
     """**Pause for certain amount of time in seconds**
     
@@ -15,6 +16,14 @@ def abort():
     print("Aborting program...")
     raise SystemExit
 
+def set_volume_high():
+    mindcraft._mycozmo.set_robot_volume(1)
+def set_volume_low():
+    mindcraft._mycozmo.set_robot_volume(.05)
+def set_volume_med():
+    mindcraft._mycozmo.set_robot_volume(.5)
+    
+    
 def enable_head_light():
     """**Enable head light to see in low light conditions**
     """

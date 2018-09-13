@@ -10,7 +10,7 @@ _mycozmo: cozmo.robot.Robot
 
 _mycozmo = None
 from .initialize_robot import initialize_robot
-from .mindcraft_defaults import _df_image_stream_enabled    
+from .mindcraft_defaults import df_image_stream_enabled    
 def _mindcraft_main(robot: cozmo.robot.Robot):
     global _mycozmo
     _mycozmo = robot
@@ -19,9 +19,8 @@ def _mindcraft_main(robot: cozmo.robot.Robot):
     _user_program()
 
 
-def run_on_cozmo(program):
-    """**Runs a program in Cozmo and launchs the viewer to display what
-    Cozmo sees**
+def run_program(program):
+    """**Run a program in Cozmo**
 
     This is the entry point for a Cozmo program. Under the hood, it
     sets up the communication link with your Cozmo, initilizes the
@@ -35,7 +34,7 @@ def run_on_cozmo(program):
     _user_program = program
     cozmo.run_program(_mindcraft_main, use_viewer=False)
 
-def run_on_cozmo_debug_mode(program):
+def run_program_with_viewer(program):
     """**Run a program in Cozmo in debug mode and launch the viewer
     to display what Cozmo sees**
 
@@ -48,7 +47,7 @@ def run_on_cozmo_debug_mode(program):
     """
 
     global _user_program
-    global _df_image_stream_enabled
+    global df_image_stream_enabled
     _user_program = program
-    _df_image_stream_enabled = True
+    df_image_stream_enabled = True
     cozmo.run_program(_mindcraft_main, use_viewer=True)

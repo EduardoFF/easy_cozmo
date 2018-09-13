@@ -4,35 +4,44 @@ import asyncio
 import time
 import cozmo
 from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians
-from .mindcraft_defaults import _df_scan_face_speed
+from .mindcraft_defaults import df_scan_face_speed
 from . import mindcraft
 from .say import *
 from .say import _say_error
 from .movements import *
 
-def is_any_teammate_visible():
+def is_teammate_visible():
         return _get_visible_teammate_face() is not False
-        
+
+
 """ returns a face object """
-def _get_visible_teammate_face(ignore_list=[]):
+
+def _get_visible_face(only_named=False):
         robot = mindcraft._mycozmo
         try:
                 for visible_face in robot.world.visible_faces:
-                    if visible_face.name != '':
-                        if ignore_list is None or visible_face.name not in ignore_list:
-                                    return visible_face
+                        if only_named:
+                                if visible_face.name != '':
+                                        return visible_face
+                        else:
+                                return visible_face
         except:
                 pass
         return False
+
+def _get_visible_teammate_face():
+        return _get_visible_face(only_named=True)
+
+
 """ returns a string """
 def _get_visible_teammate_name():
-        teammate = _get_visible_teammate_face()
+        teammate = _get_visible_face(only_named=True)
         if not teammate:
                 return ""
         return teammate.name
 
-def scan_for_any_teammate(angle=360,scan_speed=_df_scan_face_speed, ignore_list=None):
-        """**Rotate in place while looking for a teammate**
+def _scan_for_faces(angle=360, scan_speed=df_scan_face_speed, only_named=False):
+        """**Rotate in place while looking for teammates**
 
         This function executes a rotation, with certain angular speed
         and angle, while at the same time looking for any face
@@ -52,17 +61,12 @@ def scan_for_any_teammate(angle=360,scan_speed=_df_scan_face_speed, ignore_list=
         :return: True (suceeded) or False (failed)
         """
         robot = mindcraft._mycozmo
-
-        #make positive angle cw
-        angle *= -1
-        
-        print("going to start looking for familiar faces")
-        action = robot.turn_in_place(degrees(angle), speed=scan_speed)
+        action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed))
         print("started first action ")
-        while( not _get_visible_teammate_face(ignore_list=ignore_list) ):
+        while( not _get_visible_face(only_named=only_named) ):
                 if action.is_completed:
                         break
-                time.sleep(.2)
+                time.sleep(.25)
         try:
                 if action.is_running:
                         action.abort()
@@ -82,12 +86,39 @@ def scan_for_any_teammate(angle=360,scan_speed=_df_scan_face_speed, ignore_list=
                         sleep(.5)
 
 
-        face = _get_visible_teammate_face(ignore_list)
+        face = _get_visible_face(only_named=only_named)
         if not face:
-                _say_error("I can't find any teammate, sorry")
+                _say_error("I can't find a face, sorry")
                 return False
         return True
-    
+        
+def scan_for_teammates(angle=360, scan_speed=df_scan_face_speed):
+        return _scan_for_faces(angle, scan_speed, only_named=True)
+
+        
+def scan_for_faces(angle=360,scan_speed=df_scan_face_speed):
+        """**Rotate in place while looking for any human faces**
+
+        This function executes a rotation, with certain angular speed
+        and angle, while at the same time looking for any face
+        previously registered using the Meet Cozmo App.  As soon as
+        Cozmo identifies a human face (not necessarily registered) in
+        its field of view (not necessarily at the center of the
+        camera), it stops the rotation.  As a result, Cozmo should
+        keep seeing the cube after it stops.
+
+        :param angle: Angle to scan (in degrees)
+        :type angle: float
+
+            ..  note::
+
+                If the angle is positive, Cozmo rotates in clockwise order. A negative angle is a counter clockwise rotation.
+
+        :return: True (suceeded) or False (failed)
+        """
+        return _scan_for_faces(angle, scan_speed, only_named=False)
+
+
 
 def say_something_to_visible_teammate( text_before='', text_after='', *args):
         """**Identify a visible teammate, and say something mentioning
@@ -122,7 +153,7 @@ def say_something_to_visible_teammate( text_before='', text_after='', *args):
         :return: True (suceeded) or False (failed)
         """
         
-        if not _align_with_any_visible_teammate(once=True):
+        if not _align_with_visible_face(once=True):
                 _say_error("I can't see any teammate, sorry")
                 return False
                 
@@ -133,7 +164,7 @@ def say_something_to_visible_teammate( text_before='', text_after='', *args):
         
         text_after = text_after + ' '.join(map(str, args))
 
-        mindcraft._mycozmo.say_text(text_before+name+text_after).wait_for_completed()
+        mindcraft._mycozmo.say_text(text_before+" "+name+" "+text_after).wait_for_completed()
         return True
 
 def enable_facial_expression_recognition():
@@ -147,23 +178,31 @@ def disable_facial_expression_recognition():
 
         mindcraft._mycozmo.enable_facial_expression_estimation(enable=False)
 
-def _is_happy_face(robot, face, timeout=False):
+def wait_for_a_smiling_face_visible(timeout=False):
         """****
         """
+        enable_facial_expression_recognition()
         start_time = time.time()
         from cozmo.faces import FACIAL_EXPRESSION_HAPPY
-        if face is None:
-                return False
+        retval = False
         if timeout:
-                while True:
-                        if face.known_expression == FACIAL_EXPRESSION_HAPPY:
-                                return True
+                while not retval:
+                        face = _get_visible_face()
+                        if face and  face.known_expression == FACIAL_EXPRESSION_HAPPY:
+                                retval = True
+                                break
                         if time.time() - start_time > timeout:
                                 break
                         time.sleep(.2)
-        return face.known_expression == FACIAL_EXPRESSION_HAPPY
+        face = _get_visible_face()
+        if face:
+                retval |= face.known_expression == FACIAL_EXPRESSION_HAPPY 
+        disable_facial_expression_recognition()
+        
+        return retval
 
-def _align_with_any_visible_teammate(once=False):
+
+def _align_with_visible_face(once=False):
         face_to_follow = None
         robot = mindcraft._mycozmo
 
@@ -191,9 +230,10 @@ def _align_with_any_visible_teammate(once=False):
                                 break
                 time.sleep(.2)
         return True
+
             
-def align_with_any_visible_teammate():
-        """**Align with any visible teammate**
+def align_with_face():
+        """**Align with any visible face**
 
         Align Cozmo's body with a visible teammate.  As a result, the
         face will appear centered in Cozmo's camera.
@@ -204,5 +244,5 @@ def align_with_any_visible_teammate():
            This action is useful to control Cozmo's heading angle using your face.
         """
 
-        return _align_with_any_visible_teammate(once=True)
+        return _align_with_visible_face(once=True)
     

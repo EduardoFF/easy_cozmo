@@ -1,5 +1,6 @@
-from .mindcraft_defaults import _df_volume, _df_image_stream_enabled
+from .mindcraft_defaults import df_volume, df_image_stream_enabled
 from cozmo.objects import CustomObject, CustomObjectMarkers, CustomObjectTypes
+
 def initialize_robot(robot):
     robot.enable_all_reaction_triggers(False)
     # define custom objects
@@ -44,23 +45,23 @@ def initialize_robot(robot):
                                    100, 60, 50, 50, unique_marker)
 
     robot.world.define_custom_wall(CustomObjectTypes.CustomType13,
-                                   CustomObjectMarkers.Circles4,
+                                   CustomObjectMarkers.Circles5,
                                    100, 60, 50, 50, unique_marker)
     robot.world.define_custom_wall(CustomObjectTypes.CustomType14,
-                                   CustomObjectMarkers.Diamonds4,
+                                   CustomObjectMarkers.Diamonds5,
                                    100, 60, 50, 50, unique_marker)
     robot.world.define_custom_wall(CustomObjectTypes.CustomType15,
-                                   CustomObjectMarkers.Hexagons4,
+                                   CustomObjectMarkers.Hexagons5,
                                    100, 60, 50, 50, unique_marker)
     robot.world.define_custom_wall(CustomObjectTypes.CustomType16,
-                                   CustomObjectMarkers.Triangles4,
+                                   CustomObjectMarkers.Triangles5,
                                    100, 60, 50, 50, unique_marker)
 
                                    
                                    
     # todo: disable it by default
 #    robot.enable_facial_expression_estimation(False)
-    robot.set_robot_volume(_df_volume)
+    robot.set_robot_volume(df_volume)
     robot.camera.enable_auto_exposure(True)
     exposure_range = robot.camera.config.max_exposure_time_ms - robot.camera.config.min_exposure_time_ms
     exposure = robot.camera.config.min_exposure_time_ms + int(exposure_range*0.25)
@@ -70,6 +71,6 @@ def initialize_robot(robot):
 #    robot.camera.set_manual_exposure(exposure, gain)
     
     robot.camera.image_stream_enabled = True
-    print("camera.image_stream_enabled ", _df_image_stream_enabled)
+    print("camera.image_stream_enabled ", df_image_stream_enabled)
     robot.set_lift_height(0).wait_for_completed()
     robot.world.disconnect_from_cubes()
