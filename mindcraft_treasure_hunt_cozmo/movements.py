@@ -21,7 +21,7 @@ def rotate_in_place(angle):
         else:
             code, reason = action.failure_reason
             result = action.result
-            print("Rotate failed: code=%s reason='%s' result=%s" % (code, reason, result))
+            print("WARNING RotateInPlace: code=%s reason='%s' result=%s" % (code, reason, result))
             say_error("I couldn't rotate, sorry")     
     except Exception as e:
         import traceback
@@ -40,6 +40,9 @@ def rotate_in_place(angle):
   
     return False
 
+def rotate(angle):
+    return rotate_in_place(angle)
+
 def _move_head(angle):
     action=None
     try:
@@ -50,7 +53,7 @@ def _move_head(angle):
         else:
             code, reason = action.failure_reason
             result = action.result
-            print("Move head failed: code=%s reason='%s' result=%s" % (code, reason, result))
+            print("WARNING: Move head: code=%s reason='%s' result=%s" % (code, reason, result))
             say_error("I couldn't move my head, sorry")
     except Exception as e:
         import traceback
@@ -100,7 +103,7 @@ def _move_lift(height):
         else:
             code, reason = action.failure_reason
             result = action.result
-            print("Move head failed: code=%s reason='%s' result=%s" % (code, reason, result))
+            print("WARNING: Move head: code=%s reason='%s' result=%s" % (code, reason, result))
     except Exception as e:
         import traceback
         print(e)
@@ -154,12 +157,16 @@ def reverse_in_seconds(duration):
 
 def reverse(distance):
     duration = 10.0 * distance / df_reverse_speed
-    print("reversing for ",duration, "seconds")
+    #print("reversing for ",duration, "seconds")
     return reverse_in_seconds(duration)
-    
+
+def move_backward(distance):
+    return reverse(distance)
 
 def move_forward(distance):
-    action =  mindcraft._mycozmo.drive_straight(distance_mm(distance*10), speed=speed_mmps(df_forward_speed))
+    action =  mindcraft._mycozmo.drive_straight(distance_mm(distance*10),
+                                                speed=speed_mmps(df_forward_speed),
+                                                should_play_anim=False)
     try:
         action.wait_for_completed()
         if action.has_succeeded:
@@ -167,7 +174,7 @@ def move_forward(distance):
         else:
             code, reason = action.failure_reason
             result = action.result
-            print("Move head failed: code=%s reason='%s' result=%s" % (code, reason, result))
+            print("WARNING: Move forward: code=%s reason='%s' result=%s" % (code, reason, result))
 
     except Exception as e:
         import traceback
@@ -208,8 +215,8 @@ def move_forward_avoiding_landmark(distance):
         else:
             code, reason = action.failure_reason
             result = action.result
-            print("Move forward failed: code=%s reason='%s' result=%s" % (code, reason, result))
-            say_error("Couldn't move forward, sorry")
+            print("WARNING GoToPose: code=%s reason='%s' result=%s" % (code, reason, result))
+            _say_error("difficulties moving forward, sorry")
     except Exception as e:
         import traceback
         print(e)

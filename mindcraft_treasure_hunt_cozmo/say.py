@@ -12,7 +12,7 @@ def _say_error(errormsg, *args):
     #errormsg = "ERROR, "+errormsg
     errormsg = errormsg + ' '.join(map(str, args))
     print("ERROR ",errormsg)
-    _mycozmo.say_text(errormsg).wait_for_completed()
+#    _mycozmo.say_text(errormsg).wait_for_completed()
     
 def say_error(errormsg):
     """**Say "ERROR" followed by a message**

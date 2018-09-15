@@ -8,4 +8,5 @@ from .initialize_robot import *
 from .movements import *
 from .robot_utils import *
 from .say import *
+from .animations import *
 

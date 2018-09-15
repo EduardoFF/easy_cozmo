@@ -12,7 +12,8 @@ from .movements import *
 
 def is_teammate_visible():
         return _get_visible_teammate_face() is not False
-
+def is_face_visible():
+        return _get_visible_face(only_named=False)
 
 """ returns a face object """
 
@@ -62,7 +63,7 @@ def _scan_for_faces(angle=360, scan_speed=df_scan_face_speed, only_named=False):
         """
         robot = mindcraft._mycozmo
         action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed))
-        print("started first action ")
+        #print("started first action ")
         while( not _get_visible_face(only_named=only_named) ):
                 if action.is_completed:
                         break

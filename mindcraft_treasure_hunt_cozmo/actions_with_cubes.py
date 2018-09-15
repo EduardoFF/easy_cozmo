@@ -232,9 +232,9 @@ def _find_nearest_face(cube):
         import math
         robot = mindcraft._mycozmo
         cube_pose1_relative_to_robot = _get_relative_pose(cube.pose, robot.pose)
-        print("relative pose1 ", cube_pose1_relative_to_robot)
+        #print("relative pose1 ", cube_pose1_relative_to_robot)
         cube_pose2_relative_to_robot = robot.pose.define_pose_relative_this(cube.pose)
-        print("relative pose2 ", cube_pose2_relative_to_robot)
+        #print("relative pose2 ", cube_pose2_relative_to_robot)
         pose = cube_pose1_relative_to_robot
         x_axis = math.cos(pose.rotation.angle_z.radians)
         y_axis = math.cos(pose.rotation.angle_z.radians+math.pi*0.5)
@@ -249,11 +249,11 @@ def _align_with_cube(cube, distance=df_align_distance, refined=df_align_refined)
         if not isinstance(cube, LightCube):
                 return False
         nearest_face = _find_nearest_face(cube)
-        print("Aligning with cube's nearest face ", nearest_face)
+        #print("Aligning with cube's nearest face ", nearest_face)
         heading = math.atan2(nearest_face[1], nearest_face[0])
         pose = Pose(-distance*nearest_face[0], -distance*nearest_face[1], 0,
                     angle_z=radians(heading))
-        print("Moving to relative pose ", pose)
+        #print("Moving to relative pose ", pose)
         return _move_relative_to_cube(cube, pose, refined=refined)
         
 def align_with_nearest_cube(distance= df_align_distance,
@@ -313,7 +313,7 @@ def pickup_cube_by_id(cube_id):
                 if action.has_failed:
                         code, reason = current_action.failure_reason
                         result = current_action.result
-                        print("Pickup Cube failed: code=%s reason='%s' result=%s" % (code, reason, result))
+                        print("WARNING: PickupCube: code=%s reason='%s' result=%s" % (code, reason, result))
                         _say_error("I couldn't pickup the cube ", cube_id, " sorry")
                         action.abort()
                         return False

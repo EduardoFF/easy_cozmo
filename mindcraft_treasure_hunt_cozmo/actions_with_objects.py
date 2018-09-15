@@ -145,7 +145,7 @@ def _scan_for_object(angle, scan_speed=df_scan_object_speed,
                 if object.pose.origin_id == -1:
                         return False
 
-        print("Found object ", object)
+        #print("Found object ", object)
         return True
 
 
@@ -261,7 +261,7 @@ def _get_nearest_object(valid_object_check=_is_observable_object):
         robot = mindcraft._mycozmo           
         objects = _wait_for_visible_objects(valid_object_check)
         if len(objects)==0:
-                print("I can't align, I can't see any object")
+                #print("I can't align, I can't see any object")
                 return False
         # find nearest one
         min_dst, targ = -1, None
@@ -278,13 +278,13 @@ def _get_nearest_object(valid_object_check=_is_observable_object):
                         min_dst, targ = dst, object
 
         if not targ:
-                print("I can't align, I can't see any nearby object")
+                #print("I can't align, I can't see any nearby object")
                 return False
         object = targ
         if object.pose.origin_id == -1:
-                print("I can't align, I can't localize the nearest object")
+                #print("I can't align, I can't localize the nearest object")
                 return False
-        print("Found nearest object ",object)
+        #print("Found nearest object ",object)
         return object
 
 def _align_with_nearest_object(distance= df_align_distance,
@@ -310,5 +310,5 @@ def _align_with_nearest_object(distance= df_align_distance,
         heading = 0
         pose = Pose(-distance, 0, 0,
                     angle_z=radians(heading))
-        print("Moving to relative pose ", pose)
+        #print("Moving to relative pose ", pose)
         return _move_relative_to_object(object, pose, refined=refined)
