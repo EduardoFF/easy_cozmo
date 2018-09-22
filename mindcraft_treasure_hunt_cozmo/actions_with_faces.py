@@ -62,6 +62,9 @@ def _scan_for_faces(angle=360, scan_speed=df_scan_face_speed, only_named=False):
         :return: True (suceeded) or False (failed)
         """
         robot = mindcraft._mycozmo
+        # makes positive angles cw 
+        angle *= -1
+        
         action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed))
         #print("started first action ")
         while( not _get_visible_face(only_named=only_named) ):
