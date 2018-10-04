@@ -31,10 +31,7 @@ class LineAnnotator(cozmo.annotate.Annotator):
     def apply(self, image, scale):
         d = ImageDraw.Draw(image)
         if self._detector.cline != None:
-            print("drawing")
-            print(self._detector.cline)
             scaled_line = [ x * scale for x in self._detector.cline]
-            print(scaled_line)
             d.line(scaled_line, width=10, fill='green')
             #cv_im = draw_lines(cv_im, [[self._detector.cline]], thickness=100, color=[0,255,0])
         bounds = (0, 0, image.width, image.height)
@@ -98,7 +95,8 @@ def initialize_line_detector(algo):
         _line_detector = LineDetector(robot)
 
 def get_detected_line_angle():
-    _move_head(degrees(-11))
+    if abs(mindcraft._mycozmo.head_angle.degrees - df_line_detection_head_angle) > 3:
+        mindcraft._mycozmo.set_head_angle(degrees(df_line_detection_head_angle)).wait_for_completed()
     #move_lift_ground()
     if not _line_detector:
         print("detector not initialized")

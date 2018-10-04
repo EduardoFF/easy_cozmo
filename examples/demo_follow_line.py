@@ -11,28 +11,28 @@ def cozmo_program():
             if angle < -15:
                 # should move left
                 if angle >-30 :
-                    right_speed = 20
-                    left_speed = 40
+                    right_speed = 2
+                    left_speed = 4
                 elif angle < -30:
                     right_speed = 0
-                    left_speed = 50
+                    left_speed = 5
                 else:
-                    right_speed = -20
-                    left_speed = 20
+                    right_speed = -2
+                    left_speed = 2
             elif angle > 15:
                 #should move right
                 if angle < 30 :
-                    right_speed = 40
-                    left_speed = 20
+                    right_speed = 4
+                    left_speed = 2
                 else:
-                    right_speed = 50
+                    right_speed = 5
                     left_speed =0
             else:
-                left_speed = 50
-                right_speed = 50
-            set_motors(left_speed, right_speed)
+                left_speed = 5
+                right_speed = 5
+            set_wheels_speeds(left_speed, right_speed)
         else:
-            stop_motors()
+            stop()
         pause(0.05)
 
         

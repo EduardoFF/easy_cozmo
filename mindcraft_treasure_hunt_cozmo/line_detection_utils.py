@@ -214,11 +214,18 @@ def pipeline(image, **kwargs):
 
     if lines is not None and len(lines) > 0:
         line_image = image
-     #   print("lines found ...")
         if lane_detection:
-      #      print("Processing lines ...")
             for line in lines:
                 for x1, y1, x2, y2 in line:
+
+                    # if line is almost vertical, count it both as left and right
+                    if abs(x2 - x1) < 2:
+                        left_line_x.extend([x1, x2])
+                        left_line_y.extend([y1, y2])
+                        right_line_x.extend([x1, x2])
+                        right_line_y.extend([y1, y2])
+                        continue
+                            
                     slope = (y2 - y1) / (x2 - x1)
                     if math.fabs(slope) < 0.5:
                         continue
@@ -242,7 +249,7 @@ def pipeline(image, **kwargs):
                 left_x_end = int(poly_left(min_y))
                 left_lane = [left_x_start, max_y, left_x_end, min_y]
             except:
-                print("Left lane not found")
+                pass
 
             right_lane = []
             try:
@@ -256,7 +263,7 @@ def pipeline(image, **kwargs):
                 right_x_end = int(poly_right(min_y))
                 right_lane = [right_x_start, max_y, right_x_end, min_y]
             except:
-                print("Right lane not found")
+                pass
 #            print("Left lane ", left_lane)
 #            print("Right lane ", right_lane)
             lines = []
@@ -274,7 +281,6 @@ def pipeline(image, **kwargs):
             )
 
         if kwargs['single_line_output']:
- #           print("doing single line ", len(lines))
             if len(lines) >= 2:
                 if (left_lane[3] - left_lane[1]) < 2:
                     lines = [[left_lane]]
@@ -293,7 +299,6 @@ def pipeline(image, **kwargs):
                     xi2 = (max_y -yi + mi*xi)/mi
                     linei = [int(xi), int(yi), int(xi2), int(yi2)]
                     lines=[[linei]]
-#                print("line intersect ", linei)
 
         if kwargs['draw_single_line']:
 #            print("Drawing lines...")

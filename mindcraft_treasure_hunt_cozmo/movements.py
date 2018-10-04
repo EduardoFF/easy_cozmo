@@ -3,7 +3,7 @@ import cozmo
 from . import mindcraft
 from .say import _say_error, say_error
 from .mindcraft_defaults import  df_reverse_speed, \
-    df_rotate_speed, df_forward_speed
+    df_rotate_speed, df_forward_speed, df_max_wheel_speed
 
 def rotate_in_place(angle):
     """**Rotate in place for a given angle in degrees**
@@ -234,9 +234,20 @@ def move_forward_avoiding_landmark(distance):
 
     return False
 
-def set_motors(left_speed, right_speed): 
+
+def set_wheels_speeds(left_speed, right_speed):
+    """ Set the wheels speeds in cm """
+    left_speed *= 10
+    right_speed *= 10
+    if abs(left_speed) > df_max_wheel_speed \
+       or abs(right_speed) > df_max_wheel_speed:
+        say_error("Invalid speed")
+        return False
+        
     mindcraft._mycozmo.drive_wheel_motors(left_speed, right_speed,\
                                           l_wheel_acc=200, r_wheel_acc=200)
-def stop_motors():
+    return True
+def stop():
     mindcraft._mycozmo.stop_all_motors()
+    return True
 
