@@ -9,4 +9,5 @@ from .movements import *
 from .robot_utils import *
 from .say import *
 from .animations import *
+from .line_detector import *
 

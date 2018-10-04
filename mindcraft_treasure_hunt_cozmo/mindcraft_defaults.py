@@ -20,3 +20,12 @@ df_distance_threshold_for_objects = 400 # in mm
 df_use_headlight_for_scan_object = True
 df_forget_old_when_scanning_objects=True
 df_scan_object_speed = 20 #in degrees
+
+df_houghdetector_rho = 4
+df_houghdetector_thetadiv = 50
+df_houghdetector_threshold = 30
+df_houghdetector_minlinelength = 50
+df_houghdetector_maxlinegap = 255
+df_houghdetector_lanedetection = True
+df_houghdetector_singlelineoutput = True
+
