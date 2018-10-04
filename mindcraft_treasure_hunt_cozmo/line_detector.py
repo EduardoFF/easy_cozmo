@@ -14,12 +14,16 @@ import asyncio
 import cozmo
 import cv2 as cv
 import numpy as np
+import math
 import sys
 from .line_detection_utils import pipeline, draw_lines, average_lines
 from .mindcraft_defaults import *
 from PIL import Image, ImageDraw
+from . import mindcraft
+from .movements import _move_head, move_lift_ground
+from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians
 
-
+_line_detector = None
 class LineAnnotator(cozmo.annotate.Annotator):
     def __init__(self, detector):
         super(LineAnnotator, self).__init__(detector._robot.world.image_annotator)
@@ -35,7 +39,7 @@ class LineAnnotator(cozmo.annotate.Annotator):
             #cv_im = draw_lines(cv_im, [[self._detector.cline]], thickness=100, color=[0,255,0])
         bounds = (0, 0, image.width, image.height)
         #batt = self.world.robot.battery_voltage
-        text = cozmo.annotate.ImageText('SIGNAL %d' % self._detector.signal, color='green')
+        text = cozmo.annotate.ImageText('ANGLE %d \u00b0 ' % self._detector.signal, color='green')
         text.render(d, bounds)
 
 
@@ -55,6 +59,7 @@ class LineDetector:
         raw_img = image.raw_image
         raw_rgb = np.array(raw_img)
         cv2_image = cv.cvtColor(raw_rgb, cv.COLOR_RGB2BGR)
+        height, width, channels = cv2_image.shape
         args = {'rho': df_houghdetector_rho,
                 'theta_div': df_houghdetector_thetadiv,
                 'threshold': df_houghdetector_threshold,
@@ -70,16 +75,13 @@ class LineDetector:
             self._ma_lines = self._ma_lines[-10:]
         self.cline = average_lines(self._ma_lines, cv2_image.shape[0])
 
-        middleY = 120
+        
+        middleY = int(height * df_houghdetector_horizon)
         if self.cline:
             x1, y1, x2, y2 = self.cline
-            if abs(x2-x1) < 1:
-                self.signal = x1
-            else:
-                m = 1.0*(y2-y1)/(x2-x1)
-                b = y1 - m*x1
-                self.signal = int((1.0*middleY - b)/m)
-            print(self.signal)
+            dy = y2-y1
+            dx = x2-x1
+            self.signal = (math.degrees(math.atan2( dy,dx)) - 90)*-1
 
 #        pil_img = image.raw_image
 #        if self.cline is not None:
@@ -88,3 +90,18 @@ class LineDetector:
 #        raw_rgb = np.array(raw_img)
         
  
+
+def initialize_line_detector(algo):
+    global _line_detector
+    robot = mindcraft._mycozmo
+    if algo == 'hough':
+        _line_detector = LineDetector(robot)
+
+def get_detected_line_angle():
+    _move_head(degrees(-11))
+    #move_lift_ground()
+    if not _line_detector:
+        print("detector not initialized")
+        return None
+    return _line_detector.signal
+        

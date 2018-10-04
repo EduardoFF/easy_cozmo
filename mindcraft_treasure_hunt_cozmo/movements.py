@@ -234,5 +234,9 @@ def move_forward_avoiding_landmark(distance):
 
     return False
 
-
+def set_motors(left_speed, right_speed): 
+    mindcraft._mycozmo.drive_wheel_motors(left_speed, right_speed,\
+                                          l_wheel_acc=200, r_wheel_acc=200)
+def stop_motors():
+    mindcraft._mycozmo.stop_all_motors()
 

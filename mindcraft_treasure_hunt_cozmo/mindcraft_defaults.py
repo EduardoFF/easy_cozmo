@@ -28,4 +28,6 @@ df_houghdetector_minlinelength = 50
 df_houghdetector_maxlinegap = 255
 df_houghdetector_lanedetection = True
 df_houghdetector_singlelineoutput = True
+df_houghdetector_horizon = 0.5
+df_enable_line_detection = True
 

@@ -82,7 +82,7 @@ def draw_lines(img, lines, color=[255, 255, 0], thickness=6):
 #    edged = cv2.Canny(blurred, lower, upper)
 #    return edged
 
-def average_lines(lines, max_y):
+def average_lines(lines, h_y, centered=True, mid_x = 160, max_y = 240):
     xs = []
     ys = []
     for line in lines:
@@ -98,9 +98,6 @@ def average_lines(lines, max_y):
                     continue
             xs.extend([x1, x2])
             ys.extend([y1, y2])
-    min_y = int(max_y * (2 / 5))
-    max_y = int(max_y)
-
     if len(ys) < 3:
         return None
     poly = np.poly1d(np.polyfit(
@@ -108,11 +105,14 @@ def average_lines(lines, max_y):
         xs,
         deg=1
     ))
-
-    x_start = int(poly(max_y))
-    x_end = int(poly(min_y))
-    line = [x_start, max_y, x_end, min_y]
-    return line
+    if centered:
+        h_y = int(max_y / 2)
+        h_x = int(poly(h_y))
+        b_y = max_y
+        b_x = mid_x
+        line = [h_x, h_y, mid_x, b_y]
+        return line
+    return None
 
 
 """ expects an opencv image (BGR) """

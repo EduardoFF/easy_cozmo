@@ -371,3 +371,32 @@ def drop_cube():
         move_lift_ground()
         reverse_in_seconds(2)
  
+def place_on_top(cube_id):
+        from .actions_with_cubes import _get_visible_cube_by_id
+        if cube_id not in [1,2,3]:
+                say_error("Cube id " + str(cube_id) + " not good")
+                return False
+        mindcraft._mycozmo.set_head_angle(degrees(0)).wait_for_completed()
+        mindcraft._mycozmo.set_head_light(False)
+        cube = _get_visible_cube_by_id(cube_id)
+        if not cube:
+                _say_error("I can't see cube ", cube_id)
+                return False
+        action=None
+        try:
+                action=mindcraft._mycozmo.place_on_object(cube, num_retries=df_pickup_retries)
+                action.wait_for_completed()
+                if action.has_failed:
+                        code, reason = current_action.failure_reason
+                        result = current_action.result
+                        print("WARNING: PlaceOnObject: code=%s reason='%s' result=%s" % (code, reason, result))
+                        _say_error("I couldn't place the cube ", cube_id, " sorry")
+                        action.abort()
+                        return False
+                else:
+                        return True
+        except:
+                pass
+        _say_error("I couldn't place the cube ", cube_id, " sorry")
+        return False
+
