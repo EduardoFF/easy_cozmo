@@ -18,7 +18,7 @@ import math
 import sys
 from .line_detection_utils import pipeline, draw_lines, average_lines
 from .mindcraft_defaults import *
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 from . import mindcraft
 from .movements import _move_head, move_lift_ground
 from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians
@@ -33,11 +33,36 @@ class LineAnnotator(cozmo.annotate.Annotator):
         if self._detector.cline != None:
             scaled_line = [ x * scale for x in self._detector.cline]
             d.line(scaled_line, width=10, fill='green')
+            draw_arrow = True
+            if draw_arrow:
+                px = scaled_line[0]
+                py = scaled_line[1]
+                angle = math.atan2(scaled_line[3] - scaled_line[1], scaled_line[2] - scaled_line[0])
+                if angle < math.pi:
+                    dangle = math.radians(30)
+                    dx = math.cos(angle + dangle)
+                    dy = math.sin(angle + dangle)
+                    arrow_l = [px, py, px + 20*dx, py + 20*dy]
+                    dx = math.cos(angle -dangle)
+                    dy = math.sin(angle -dangle)
+                    arrow_r = [px, py, px + 20*dx, py + 20*dy]
+                    d.line(arrow_r, width=10, fill='green')
+                    d.line(arrow_l, width=10, fill='green')
+
             #cv_im = draw_lines(cv_im, [[self._detector.cline]], thickness=100, color=[0,255,0])
         bounds = (0, 0, image.width, image.height)
         #batt = self.world.robot.battery_voltage
-        text = cozmo.annotate.ImageText('ANGLE %d \u00b0 ' % self._detector.signal, color='green')
-        text.render(d, bounds)
+        if self._detector.signal is not None:
+            text = None
+            try:
+                arialfont = ImageFont.truetype("arial.ttf", 28, encoding="unic")
+                if arialfont != None:
+                    text = cozmo.annotate.ImageText('ANGLE %d \u00b0 ' % self._detector.signal, font=arialfont, color='green')
+            except:
+                pass
+            if text is None:
+                text = cozmo.annotate.ImageText('ANGLE %d \u00b0 ' % self._detector.signal, color='green')
+            text.render(d, bounds)
 
 
 class LineDetector:
@@ -78,6 +103,8 @@ class LineDetector:
             dy = y2-y1
             dx = x2-x1
             self.signal = (math.degrees(math.atan2( dy,dx)) - 90)*-1
+        else:
+            self.signal = None
 
 #        pil_img = image.raw_image
 #        if self.cline is not None:

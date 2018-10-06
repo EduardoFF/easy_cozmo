@@ -8,7 +8,6 @@ def cozmo_program():
     while True:
         angle = get_detected_line_angle()
         if angle:
-            print("angle: ", angle)
             if angle < -15:
                 # should move left
                 if angle >-30 :

@@ -311,16 +311,18 @@ def pickup_cube_by_id(cube_id):
                 action=mindcraft._mycozmo.pickup_object(cube, num_retries=df_pickup_retries)
                 action.wait_for_completed()
                 if action.has_failed:
-                        code, reason = current_action.failure_reason
-                        result = current_action.result
+                        code, reason = action.failure_reason
+                        result = action.result
                         print("WARNING: PickupCube: code=%s reason='%s' result=%s" % (code, reason, result))
                         _say_error("I couldn't pickup the cube ", cube_id, " sorry")
                         action.abort()
                         return False
                 else:
                         return True
-        except:
-                pass
+        except Exception as e:
+                import traceback
+                print(e)
+                traceback.print_exc()
         _say_error("I couldn't pickup cube ", cube_id, " sorry")
         return False
 
