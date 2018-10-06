@@ -29,7 +29,8 @@ df_houghdetector_maxlinegap = 255
 df_houghdetector_lanedetection = True
 df_houghdetector_singlelineoutput = True
 df_houghdetector_horizon = 0.5
-df_enable_line_detection = True
+df_enable_line_detection = False # to enable it, call
+                                 # line_detector.init_line_detection
 df_line_detection_head_angle = -11
 
 df_max_wheel_speed = 70 # in mmps

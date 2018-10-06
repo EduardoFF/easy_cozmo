@@ -48,7 +48,6 @@ class LineDetector:
         self._robot.add_event_handler(cozmo.world.EvtNewCameraImage, self.on_img)
         self.anno = LineAnnotator(self)
         self._robot.world.image_annotator.add_annotator('houghlinedetect', self.anno)
-        self._robot.world.image_annotator.add_static_text('text', 'Coz-Cam', position=cozmo.annotate.TOP_RIGHT)
 
         self.signal = 0
         
@@ -86,9 +85,12 @@ class LineDetector:
 #            cv2_proc=cv.circle(cv2_proc, (self.signal, middleY), 3, (0,0,255), -1) #Draw middle circle RED
 #        raw_rgb = np.array(raw_img)
         
- 
-
-def initialize_line_detector(algo):
+def init_line_detection():
+    from .odometry import initialize_odometry
+    initialize_line_detector()
+    initialize_odometry()
+    
+def initialize_line_detector(algo='hough'):
     global _line_detector
     robot = mindcraft._mycozmo
     if algo == 'hough':

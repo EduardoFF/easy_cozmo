@@ -3,6 +3,7 @@ from cozmo.util import degrees, Pose, distance_mm, speed_mmps
 
 def cozmo_program():
     mindcraft._mycozmo.set_robot_volume(.1)
+    init_line_detection()
     move_lift_ground()
     while True:
         angle = get_detected_line_angle()
