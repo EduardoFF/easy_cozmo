@@ -33,7 +33,8 @@ def _is_observable_object(object):
                         return True
         return False
 
-def _get_visible_object(valid_object_check=_is_observable_object):
+def _get_visible_object(valid_object_check=_is_observable_object,
+                        use_distance_threshold = df_use_distance_threshold_for_objects):
         robot = mindcraft._mycozmo
         try:
                 for visible_object in mindcraft._mycozmo.world.visible_objects:
@@ -43,7 +44,7 @@ def _get_visible_object(valid_object_check=_is_observable_object):
                             translation = robot.pose - visible_object.pose
                             dst = translation.position.x ** 2 + translation.position.y ** 2
                             dst = dst ** 0.5
-                            if df_use_distance_threshold_for_objects:
+                            if use_distance_threshold:
                                 if dst > df_distance_threshold_for_objects:
                                         continue
 
@@ -52,7 +53,8 @@ def _get_visible_object(valid_object_check=_is_observable_object):
                 pass
         return None
 
-def _get_visible_objects(valid_object_check=_is_observable_object):
+def _get_visible_objects(valid_object_check=_is_observable_object,
+                         use_distance_threshold = df_use_distance_threshold_for_objects):
         objects = []
         robot = mindcraft._mycozmo
         try:
@@ -61,7 +63,7 @@ def _get_visible_objects(valid_object_check=_is_observable_object):
                             translation = robot.pose - visible_object.pose
                             dst = translation.position.x ** 2 + translation.position.y ** 2
                             dst = dst ** 0.5
-                            if df_use_distance_threshold_for_objects:
+                            if use_distance_threshold:
                                 if dst > df_distance_threshold_for_objects:
                                         continue
                             objects.append(visible_object)
@@ -69,7 +71,7 @@ def _get_visible_objects(valid_object_check=_is_observable_object):
                 pass
         return objects
 
-def _wait_for_visible_objects(valid_object_check=_is_observable_object):
+def _wait_for_visible_objects(valid_object_check=_is_observable_object, use_distance_threshold = df_use_distance_threshold_for_objects):
         objects = []
         robot = mindcraft._mycozmo
         try:
@@ -79,7 +81,7 @@ def _wait_for_visible_objects(valid_object_check=_is_observable_object):
                                     translation = robot.pose - visible_object.pose
                                     dst = translation.position.x ** 2 + translation.position.y ** 2
                                     dst = dst ** 0.5
-                                    if df_use_distance_threshold_for_objects:
+                                    if use_distance_threshold:
                                         if dst > df_distance_threshold_for_objects:
                                                 continue
                                     objects.append(visible_object)
@@ -90,7 +92,8 @@ def _wait_for_visible_objects(valid_object_check=_is_observable_object):
 
 
 def _scan_for_object(angle, scan_speed=df_scan_object_speed,
-                     valid_object_check=_is_observable_object):
+                     valid_object_check=_is_observable_object,
+                     use_distance_threshold = df_use_distance_threshold_for_objects):
         
         """**Rotate in place while looking for an observable object**
 
@@ -119,7 +122,7 @@ def _scan_for_object(angle, scan_speed=df_scan_object_speed,
                                 obj.pose.invalidate()
         
         action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed))
-        while( not _get_visible_object(valid_object_check)):
+        while( not _get_visible_object(valid_object_check, use_distance_threshold = use_distance_threshold)):
                 
                 if action.is_completed:
                         break
@@ -134,7 +137,7 @@ def _scan_for_object(angle, scan_speed=df_scan_object_speed,
                 print(e)
                 traceback.print_exc()
                 say_error("Scan for object failed")
-        object = _get_visible_object(valid_object_check)
+        object = _get_visible_object(valid_object_check, use_distance_threshold = use_distance_threshold)
         if not object:
                 return False
         else:
@@ -257,9 +260,11 @@ def _get_relative_pose(object_pose, reference_frame_pose):
                                        cozmo.util.radians(object_pose.rotation.angle_z.radians + originRotationRadians))
 
 
-def _get_nearest_object(valid_object_check=_is_observable_object):
+def _get_nearest_object(valid_object_check=_is_observable_object,
+                        use_distance_threshold = df_use_distance_threshold_for_objects):
         robot = mindcraft._mycozmo           
-        objects = _wait_for_visible_objects(valid_object_check)
+        objects = _wait_for_visible_objects(valid_object_check,
+                                            use_distance_threshold=use_distance_threshold)
         if len(objects)==0:
                 #print("I can't align, I can't see any object")
                 return False
@@ -271,7 +276,7 @@ def _get_nearest_object(valid_object_check=_is_observable_object):
                 translation = robot.pose - object.pose
                 dst = translation.position.x ** 2 + translation.position.y ** 2
                 dst = dst ** 0.5
-                if df_use_distance_threshold_for_objects:
+                if use_distance_threshold:
                         if dst > df_distance_threshold_for_objects:
                                 continue
                 if min_dst < 0 or dst < min_dst:
@@ -289,7 +294,8 @@ def _get_nearest_object(valid_object_check=_is_observable_object):
 
 def _align_with_nearest_object(distance= df_align_distance,
                               valid_object_check=_is_observable_object,
-                            refined = df_align_refined):
+                               refined = df_align_refined,
+                               use_distance_threshold = df_use_distance_threshold_for_objects):
         """**Align with nearest object**
 
         Takes Cozmo toward the nearest object, and aligns to it
@@ -298,9 +304,11 @@ def _align_with_nearest_object(distance= df_align_distance,
         :type distance: float
 
         :return: True (suceeded) or False (failed) """
-        object = _get_nearest_object(valid_object_check)
+        object = _get_nearest_object(valid_object_check,
+                                     use_distance_threshold = use_distance_threshold)
         if not object:
                 return
+        
         # handle special case of cubes that considers nearest face
         if isinstance(object, LightCube):
                 from .actions_with_cubes import _align_with_cube
@@ -310,5 +318,41 @@ def _align_with_nearest_object(distance= df_align_distance,
         heading = 0
         pose = Pose(-distance, 0, 0,
                     angle_z=radians(heading))
-        #print("Moving to relative pose ", pose)
         return _move_relative_to_object(object, pose, refined=refined)
+
+
+def _align_with_object(obj, distance= df_align_distance,
+                       valid_object_check=_is_observable_object,
+                       refined = df_align_refined,
+                       use_distance_threshold = df_use_distance_threshold_for_objects):
+        """**Align with nearest object**
+
+        Takes Cozmo toward the nearest object, and aligns to it
+
+        :param distance: Desired distance between Cozmo and the object
+        :type distance: float
+
+        :return: True (suceeded) or False (failed) """
+        if not obj:
+                return
+        robot = mindcraft._mycozmo
+        if obj.pose.origin_id == -1:
+                _say_error("Object is not localized")
+                return
+        translation = robot.pose - obj.pose
+        dst = translation.position.x ** 2 + translation.position.y ** 2
+        dst = dst ** 0.5
+        if use_distance_threshold:
+                if dst > df_distance_threshold_for_objects:
+                        _say_error("Object is too far")
+
+        # handle special case of cubes that considers nearest face
+        if isinstance(obj, LightCube):
+                from .actions_with_cubes import _align_with_cube
+                return _align_with_cube(obj, distance=distance, refined=refined)
+                
+                
+        heading = 0
+        pose = Pose(-distance, 0, 0,
+                    angle_z=radians(heading))
+        return _move_relative_to_object(obj, pose, refined=refined)
