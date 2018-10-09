@@ -51,7 +51,7 @@ def _cube_three():
         return get_visible_cube_by_id(robot, 2)
 
 def _is_cube(obj):
-        return isinstance(obj, LightCube)
+        return obj is not None and isinstance(obj, LightCube)
 
 def _get_visible_cube():
         return _get_visible_object(_is_cube)
@@ -270,6 +270,43 @@ def align_with_nearest_cube(distance= df_align_distance,
         cube = _get_nearest_object(_is_cube)
         return _align_with_cube(cube)
 
+
+def pickup_cube():
+        """ """
+        mindcraft._mycozmo.set_head_angle(degrees(0)).wait_for_completed()
+        mindcraft._mycozmo.set_head_light(False)
+        cube = _get_visible_cube()
+        if cube is None:
+                _say_error("I can't see cube ", cube_id)
+                return False
+        return _pickup_visible_cube(cube)
+        
+
+def _pickup_visible_cube(cube):
+        if not _is_cube(cube):
+                _say_error("Invalid cube ")
+                return False
+        action=None
+        try:
+                action=mindcraft._mycozmo.pickup_object(cube, num_retries=df_pickup_retries)
+                action.wait_for_completed()
+                if action.has_failed:
+                        code, reason = action.failure_reason
+                        result = action.result
+                        print("WARNING: PickupCube: code=%s reason='%s' result=%s" % (code, reason, result))
+                        _say_error("I couldn't pickup the cube ", cube.cube_id,
+                                   " sorry")
+                        action.abort()
+                        return False
+                else:
+                        return True
+        except Exception as e:
+                import traceback
+                print(e)
+                traceback.print_exc()
+        _say_error("I couldn't pickup cube ", cube.cube_id, " sorry")
+        return False
+        
 def pickup_cube_by_id(cube_id):
         """**Pick up the cube with specified id**
         
@@ -302,29 +339,13 @@ def pickup_cube_by_id(cube_id):
         mindcraft._mycozmo.set_head_angle(degrees(0)).wait_for_completed()
         mindcraft._mycozmo.set_head_light(False)
         cube = _get_visible_cube_by_id(cube_id)
-#        robot.abort_all_actions()
-        if not cube:
+        if cube is None:
                 _say_error("I can't see cube ", cube_id)
                 return False
-        action=None
-        try:
-                action=mindcraft._mycozmo.pickup_object(cube, num_retries=df_pickup_retries)
-                action.wait_for_completed()
-                if action.has_failed:
-                        code, reason = action.failure_reason
-                        result = action.result
-                        print("WARNING: PickupCube: code=%s reason='%s' result=%s" % (code, reason, result))
-                        _say_error("I couldn't pickup the cube ", cube_id, " sorry")
-                        action.abort()
-                        return False
-                else:
-                        return True
-        except Exception as e:
-                import traceback
-                print(e)
-                traceback.print_exc()
-        _say_error("I couldn't pickup cube ", cube_id, " sorry")
-        return False
+        return _pickup_cube(cube)
+
+                
+#        robot.abort_all_actions()
 
 def pickup_cube_one():
         """**Pick up cube with id=1** 
