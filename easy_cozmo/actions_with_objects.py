@@ -94,7 +94,6 @@ def _wait_for_visible_objects(valid_object_check=_is_observable_object, use_dist
 def _scan_for_object(angle, scan_speed=df_scan_object_speed,
                      valid_object_check=_is_observable_object,
                      use_distance_threshold = df_use_distance_threshold_for_objects):
-
         """**Rotate in place while looking for an observable object**
 
         This function executes a rotation, with certain angular speed
@@ -123,7 +122,6 @@ def _scan_for_object(angle, scan_speed=df_scan_object_speed,
 
         action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed))
         while( not _get_visible_object(valid_object_check, use_distance_threshold = use_distance_threshold)):
-
                 if action.is_completed:
                         break
                 time.sleep(.2)
@@ -308,7 +306,6 @@ def _align_with_nearest_object(distance= df_align_distance,
                                      use_distance_threshold = use_distance_threshold)
         if not object:
                 return
-
         # handle special case of cubes that considers nearest face
         if isinstance(object, LightCube):
                 from .actions_with_cubes import _align_with_cube
@@ -350,8 +347,6 @@ def _align_with_object(obj, distance= df_align_distance,
         if isinstance(obj, LightCube):
                 from .actions_with_cubes import _align_with_cube
                 return _align_with_cube(obj, distance=distance, refined=refined)
-
-
         heading = 0
         pose = Pose(-distance, 0, 0,
                     angle_z=radians(heading))

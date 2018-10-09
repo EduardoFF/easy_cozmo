@@ -61,7 +61,6 @@ def scan_for_landmark(angle, scan_speed=df_scan_object_speed):
 
         :return: True (suceeded) or False (failed).
         """
-
         if not _scan_for_object(angle, valid_object_check=_is_landmark,
                                 use_distance_threshold = False):
                 return
