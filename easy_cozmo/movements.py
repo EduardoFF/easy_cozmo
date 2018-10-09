@@ -214,7 +214,7 @@ def move_forward_in_seconds(distance):
 def _execute_go_to_pose(pose, relative=True):
 
     action = easy_cozmo._robot.go_to_pose(pose, relative_to_robot=relative,
-                                           num_retries=3)
+                                          num_retries=3)
     try:
         action.wait_for_completed()
         if action.has_succeeded:
