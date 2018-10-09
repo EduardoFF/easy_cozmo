@@ -207,7 +207,8 @@ def move_forward_avoiding_landmark(distance):
     """
     distance = distance * 10
     pose = Pose(distance, 0, 0, angle_z=degrees(0))
-    action = mindcraft._mycozmo.go_to_pose(pose, relative_to_robot=True)
+    action = mindcraft._mycozmo.go_to_pose(pose, relative_to_robot=True,
+                                           num_retries=3)
     try:
         action.wait_for_completed()
         if action.has_succeeded:
