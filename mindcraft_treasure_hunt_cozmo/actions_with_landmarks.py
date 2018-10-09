@@ -37,10 +37,10 @@ def _is_landmark(obj):
         return isinstance(obj, CustomObject) or isinstance(obj, LightCube)
 
 def _get_visible_landmark():
-        return _get_visible_object(_is_landmark)
+        return _get_visible_object(_is_landmark, use_distance_threshold=False)
 
 def _get_visible_landmarks():
-        return _get_visible_objects(_is_landmark)
+        return _get_visible_objects(_is_landmark, use_distance_threshold=False)
 
 def scan_for_landmark(angle, scan_speed=df_scan_object_speed):
         
@@ -62,7 +62,8 @@ def scan_for_landmark(angle, scan_speed=df_scan_object_speed):
         :return: True (suceeded) or False (failed).
         """
         
-        if not _scan_for_object(angle, valid_object_check=_is_landmark):
+        if not _scan_for_object(angle, valid_object_check=_is_landmark,
+                                use_distance_threshold = False):
                 return
 
         object = _get_visible_landmark()
@@ -134,4 +135,4 @@ def align_with_nearest_landmark(distance= df_align_distance,
         :type distance: float
 
         :return: True (suceeded) or False (failed) """
-        return _align_with_nearest_object(distance, valid_object_check=_is_landmark, refined=refined)
+        return _align_with_nearest_object(distance, valid_object_check=_is_landmark, refined=refined, use_distance_threshold = False)
