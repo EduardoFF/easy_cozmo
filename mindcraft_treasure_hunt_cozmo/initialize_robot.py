@@ -4,6 +4,7 @@ import time
 from .movements import move_lift_down
 from .robot_utils import enable_head_light, disable_head_light
 from .mindcraft_defaults import *
+from .line_detector import initialize_line_detector
 def initialize_robot(robot):
     robot.enable_all_reaction_triggers(False)
     # define custom objects
@@ -80,5 +81,8 @@ def initialize_robot(robot):
     #robot.camera.set_manual_exposure(exposure, gain)
     
     robot.camera.image_stream_enabled = True
+    if df_enable_line_detection:
+        initialize_line_detector('hough')
+        
     #print("camera.image_stream_enabled ", df_image_stream_enabled)
     robot.world.disconnect_from_cubes()

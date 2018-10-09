@@ -421,3 +421,9 @@ def place_on_top(cube_id):
         _say_error("I couldn't place the cube ", cube_id, " sorry")
         return False
 
+def place_on_top_of_one():
+        return place_on_top(1)
+def place_on_top_of_two():
+        return place_on_top(2)
+def place_on_top_of_three():
+        return place_on_top(3)

@@ -20,3 +20,18 @@ df_distance_threshold_for_objects = 400 # in mm
 df_use_headlight_for_scan_object = True
 df_forget_old_when_scanning_objects=True
 df_scan_object_speed = 20 #in degrees
+
+df_houghdetector_rho = 4
+df_houghdetector_thetadiv = 50
+df_houghdetector_threshold = 30
+df_houghdetector_minlinelength = 50
+df_houghdetector_maxlinegap = 255
+df_houghdetector_lanedetection = True
+df_houghdetector_singlelineoutput = True
+df_houghdetector_horizon = 0.5
+df_enable_line_detection = False # to enable it, call
+                                 # line_detector.init_line_detection
+df_line_detection_head_angle = -11
+
+df_max_wheel_speed = 70 # in mmps
+
