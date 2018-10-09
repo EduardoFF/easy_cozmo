@@ -282,7 +282,6 @@ def pickup_cube():
                 return False
         return _pickup_visible_cube(cube)
 
-
 def _pickup_visible_cube(cube):
         if not _is_cube(cube):
                 _say_error("Invalid cube ")
@@ -307,6 +306,7 @@ def _pickup_visible_cube(cube):
                 traceback.print_exc()
         _say_error("I couldn't pickup cube ", cube.cube_id, " sorry")
         return False
+
 
 def pickup_cube_by_id(cube_id):
         """**Pick up the cube with specified id**
@@ -345,6 +345,9 @@ def pickup_cube_by_id(cube_id):
                 return False
         return _pickup_visible_cube(cube)
 
+
+
+#        robot.abort_all_actions()
 
 def pickup_cube_one():
         """**Pick up cube with id=1**
