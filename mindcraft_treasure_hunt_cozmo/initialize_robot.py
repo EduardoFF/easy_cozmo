@@ -11,57 +11,59 @@ def initialize_robot(robot):
     unique_marker = False
     robot.world.undefine_all_custom_marker_objects()
     time.sleep(1)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType01,
-                                   CustomObjectMarkers.Circles2,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType02,
-                                   CustomObjectMarkers.Diamonds2,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType03,
-                                   CustomObjectMarkers.Hexagons2,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType04,
-                                   CustomObjectMarkers.Triangles2,
-                                   65, 65, 40, 40, unique_marker)
-    
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType05,
-                                   CustomObjectMarkers.Circles3,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType06,
-                                   CustomObjectMarkers.Diamonds3,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType07,
-                                   CustomObjectMarkers.Hexagons3,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType08,
-                                   CustomObjectMarkers.Triangles3,
-                                   65, 65, 40, 40, unique_marker)
-    
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType09,
-                                   CustomObjectMarkers.Circles4,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType10,
-                                   CustomObjectMarkers.Diamonds4,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType11,
-                                   CustomObjectMarkers.Hexagons4,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType12,
-                                   CustomObjectMarkers.Triangles4,
-                                   65, 65, 40, 40, unique_marker)
+    add_mindcraft_landmarks = False
+    if add_mindcraft_landmarks:
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType01,
+                                       CustomObjectMarkers.Circles2,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType02,
+                                       CustomObjectMarkers.Diamonds2,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType03,
+                                       CustomObjectMarkers.Hexagons2,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType04,
+                                       CustomObjectMarkers.Triangles2,
+                                       65, 65, 40, 40, unique_marker)
 
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType13,
-                                   CustomObjectMarkers.Circles5,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType14,
-                                   CustomObjectMarkers.Diamonds5,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType15,
-                                   CustomObjectMarkers.Hexagons5,
-                                   65, 65, 40, 40, unique_marker)
-    robot.world.define_custom_wall(CustomObjectTypes.CustomType16,
-                                   CustomObjectMarkers.Triangles5,
-                                   65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType05,
+                                       CustomObjectMarkers.Circles3,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType06,
+                                       CustomObjectMarkers.Diamonds3,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType07,
+                                       CustomObjectMarkers.Hexagons3,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType08,
+                                       CustomObjectMarkers.Triangles3,
+                                       65, 65, 40, 40, unique_marker)
+
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType09,
+                                       CustomObjectMarkers.Circles4,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType10,
+                                       CustomObjectMarkers.Diamonds4,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType11,
+                                       CustomObjectMarkers.Hexagons4,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType12,
+                                       CustomObjectMarkers.Triangles4,
+                                       65, 65, 40, 40, unique_marker)
+
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType13,
+                                       CustomObjectMarkers.Circles5,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType14,
+                                       CustomObjectMarkers.Diamonds5,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType15,
+                                       CustomObjectMarkers.Hexagons5,
+                                       65, 65, 40, 40, unique_marker)
+        robot.world.define_custom_wall(CustomObjectTypes.CustomType16,
+                                       CustomObjectMarkers.Triangles5,
+                                       65, 65, 40, 40, unique_marker)
 
                                    
                                    
