@@ -25,21 +25,25 @@ from .actions_with_objects import _get_visible_object, \
         _move_relative_to_object, \
         _get_relative_pose, \
         _get_nearest_object
-
+from .odometry import *
+from .actions_with_objects import _get_relative_pose
 
 """ a map from _CustomObjectType to (x,y) """
 _loc_landmarks={}
-_loc_pose = Pose(0,0,0, angle_z = radians(0))
+_loc_landmarks_origin={}
+_loc_odom_origin = Pose(0,0,0, angle_z = radians(0))
 _loc_locating = False
 _loc_heading = False
 _loc_heading_to = None
 
 def initialize_landmark_localization():
-    global _loc_landmarks, _loc_pose, _loc_locating, _loc_heading
-    _loc_pose = Pose(0,0,0, angle_z = radians(0))
+    global _loc_landmarks, _loc_pose, _loc_locating, _loc_heading, _loc_landmarks_origin
+    _loc_odom_origin = Pose(0,0,0, angle_z = radians(0))
+    reset_odometry()
     _loc_locating = False
     _loc_heading = False
     robot = mindcraft._mycozmo
+    robot.world.undefine_all_custom_marker_objects()
     mindcraft._mycozmo.world.define_custom_wall(CustomObjectTypes.CustomType01,
                                                 CustomObjectMarkers.Circles3,
                                                 180, 180, 180, 180, True)
@@ -49,6 +53,9 @@ def initialize_landmark_localization():
                                                 180, 180, 180, 180, True)
 
     _loc_landmarks = {CustomObjectTypes.CustomType01: Pose(0,0,0, angle_z = degrees(0)), CustomObjectTypes.CustomType02: Pose(0,0,0, angle_z = degrees(0)) }
+
+    _loc_landmarks_origin = {CustomObjectTypes.CustomType01: Pose(0,0,0, angle_z = degrees(0)), CustomObjectTypes.CustomType02: Pose(1200,0,0, angle_z = degrees(180)) }
+    
 
     robot.add_event_handler(cozmo.objects.EvtObjectObserved,
                             on_obj_observed)
@@ -122,19 +129,34 @@ def _head_to(to):
 def is_centered_in_cam(p):
     return p[0] >= 140 and p[0] <= 180
 
+def _localize_with(obj):
+    global _loc_odom_origin
+    robot = mindcraft._mycozmo
+    lpose = _loc_landmarks[obj]
+    print("landmark ", obj, " @ ", lpose)
+    rel_pose = _get_relative_pose(robot.pose, lpose)
+    print("robot relative pose wrt landmark ", rel_pose)
+    _loc_odom_origin = _loc_landmarks_origin[obj] + rel_pose
+    print("new odom origin ", _loc_odom_origin)
+    
+    reset_odometry(_loc_odom_origin)
+    
+
 def on_obj_observed(evt, **kw):
     global _loc_heading, _loc_locating
-    if not _loc_locating and not _loc_heading:
-        return
+    #if not _loc_locating and not _loc_heading:
+    #    return
     robot = mindcraft._mycozmo
     if isinstance(evt.obj, CustomObject):
-#        print("Cozmo started seeing a %s" % str(evt.obj.object_type))
+        print("Cozmo started seeing a %s" % str(evt.obj.object_type))
 #        print("Imagebox ", str(evt.image_box))
         if _is_loc_landmark(evt.obj):
             translation = robot.pose - evt.pose
             dst = translation.position.x ** 2 + translation.position.y ** 2
             dst = dst ** 0.5
             _loc_landmarks[evt.obj.object_type] = evt.pose
+            _localize_with(evt.obj.object_type)
+            print("set pose ", evt.pose)
             if _loc_heading:
                 if _loc_heading_to == 'N' and evt.obj.object_type == north():
                     if is_centered_in_cam(evt.image_box.center):
@@ -155,7 +177,8 @@ def where_am_i():
     forget_when_locating = True
     angle = 360
     scan_speed = 20
-    move_head_looking_forward()
+    _move_head(degrees(15))    
+    #move_head_looking_forward()
     """ do a full rotation while watching for landmarks """    
     robot = mindcraft._mycozmo
     if forget_when_locating:
@@ -172,4 +195,16 @@ def where_am_i():
             traceback.print_exc()
     _loc_locating = False
 
+def _valid_pose(pose):
+    return pose is not None and pose.origin_id != -1
 
+def get_heading_angle():
+    # use only north
+
+    robot = mindcraft._mycozmo
+    lpose = _loc_landmarks[north()]
+    if _valid_pose(lpose):
+        rel_pose = _get_relative_pose(robot.pose, lpose)
+        return rel_pose.rotation.angle_z
+    else:
+        return None
