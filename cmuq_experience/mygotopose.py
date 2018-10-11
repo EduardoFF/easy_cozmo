@@ -13,7 +13,7 @@ class MyGoToPose(action.Action):
         return "pose=%s" % (self.pose)
 
     def _encode(self):
-        motionprof = pmp.Anki.Cozmo.PathMotionProfile(sspeed_mmps=80.0,
+        motionprof = pmp.Anki.Cozmo.PathMotionProfile(speed_mmps=80.0,
                                        accel_mmps2=400.0,
                                        decel_mmps2=500.0,
                                        pointTurnSpeed_rad_per_sec=0.5,
