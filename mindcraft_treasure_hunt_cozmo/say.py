@@ -46,7 +46,10 @@ def say(txtmsg, *args):
 
     txtmsg = txtmsg + ' '.join(map(str, args))
     print("SAY: "+txtmsg)
-    _mycozmo.say_text(txtmsg).wait_for_completed()
+    try:
+        _mycozmo.say_text(txtmsg).wait_for_completed()
+    except:
+        pass
 
 def _say(txtmsg, *args):
     """**Print  a simple message **

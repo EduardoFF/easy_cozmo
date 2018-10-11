@@ -17,9 +17,13 @@ _tour = []
 _navigating = False
 nav_action = None
 _current_nav_dest = None
+_success = False
 
 def error(msg):
-    say_error(msg)
+    try:
+        say_error(msg)
+    except:
+        pass
 
     
 def read_tour(fname):
@@ -60,11 +64,12 @@ def initialize():
     mc._mycozmo.go_to_pose_factory = MyGoToPose
     set_odom_origin(*_poses[_tour[0]])
     initialize_cube_localization()
-    _move_lift(0.2)
+    _move_lift(0.1)
     _move_head(degrees(20))
     enable_head_light()
 
 def check_distance():
+    return False
     odom_pose = get_odom_pose()
     d_pose = _current_nav_pose - odom_pose
     dst = d_pose.position.x ** 2 + d_pose.position.y ** 2
@@ -78,19 +83,18 @@ def check_distance():
 
     
 def navigating():
-    global _navigating
+    global _navigating, _success
     if _nav_action is None:
         return False
     if _nav_action.is_running:
         pause(0.2)
-        return True
-#        if check_distance():
-#            _nav_action.abort()
-#            success=True
-#            return False
-#        else:
-    else:
-        _navigating = False
+        if check_distance():
+            _nav_action.abort()
+            _navigating = False
+            _success=True
+            return False
+        else:
+            return True
     return _navigating
 
 def navigation_successful():
@@ -98,7 +102,7 @@ def navigation_successful():
         return False
     if _nav_action.is_running:
         return False
-    return _nav_action.has_succeeded
+    return _nav_action.has_succeeded or _success
 
 def collect_reward(index):
     return
@@ -123,9 +127,11 @@ def resume_navigation():
         return navigate_to(_current_dest)
         
 def navigate_to(ix):
+    global _success
     global _navigating, _nav_action
     global _current_dest, _current_nav_pose
     x, y = _poses[_tour[ix-1]]
+    _success = False
     print("Going to ", x, y)
     p_pose = Pose(int(x*10), int(y*10), 0, angle_z=degrees(0))
     odom_pose = get_odom_pose()
