@@ -55,9 +55,9 @@ def risk_of_collision():
 def loc(index):
     return _tour[index-1]
 
-def initialize():
+def initialize(use_server=False, server="localhost"):
     mc._mycozmo.set_robot_volume(.1)
-    
+    # TODO: make use of server optional
     mc._mycozmo.world.undefine_all_custom_marker_objects()
     mc._mycozmo.go_to_pose_factory = MyGoToPose
     set_odom_origin(*_poses[_tour[0]])

@@ -15,6 +15,9 @@ def on_connect(client, userdata, flags, rc):
 
 def initialize_comm(server):
     global _client
+    if _client is not None:
+        print("Comm already initialized")
+        return 
     _client = mqtt.Client()
     _client.connect(server)
     _client.on_connect = on_connect
