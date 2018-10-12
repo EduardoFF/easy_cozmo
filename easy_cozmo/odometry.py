@@ -59,10 +59,10 @@ def on_motion(event, *, robot: cozmo.robot.Robot , **kw):
         last_odom_pose = robot.pose
         _traveled_distance += dist
         _heading_offset = wrap_angle(_heading_offset + turn_angle)
-
-def initialize_odometry():
+def initialize_odometry(use_comm=False):
     global _traveled_distance, _heading_offset
-    initialize_comm()
+    if use_comm:
+        initialize_comm()
 
     _traveled_distance = 0
     _heading_offset =  0
