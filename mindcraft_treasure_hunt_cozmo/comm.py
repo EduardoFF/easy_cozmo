@@ -13,11 +13,10 @@ _client = None
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
 
-def initialize_comm():
+def initialize_comm(server):
     global _client
-    host = "172.20.85.77"
     _client = mqtt.Client()
-    _client.connect(host)
+    _client.connect(server)
     _client.on_connect = on_connect
     _client.loop_start()
 

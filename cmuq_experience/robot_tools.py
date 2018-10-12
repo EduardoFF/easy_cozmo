@@ -11,6 +11,7 @@ from cozmo.objects import CustomObject, CustomObjectMarkers, CustomObjectTypes
 from mindcraft_treasure_hunt_cozmo.odometry import set_odom_origin, get_odom_pose
 from mindcraft_treasure_hunt_cozmo.mindcraft import run_program_with_viewer
 from mindcraft_treasure_hunt_cozmo.animations import show_victory
+import math
 import cozmo
 _poses = []
 _tour = []
@@ -58,9 +59,6 @@ def initialize():
     mc._mycozmo.set_robot_volume(.1)
     
     mc._mycozmo.world.undefine_all_custom_marker_objects()
-    #mc._mycozmo.world.define_custom_wall(CustomObjectTypes.CustomType05,
-    #                                            CustomObjectMarkers.Triangles2,
-    #                                            150, 150, 28, 28, False)
     mc._mycozmo.go_to_pose_factory = MyGoToPose
     set_odom_origin(*_poses[_tour[0]])
     initialize_cube_localization()
@@ -69,7 +67,7 @@ def initialize():
     enable_head_light()
 
 def check_distance():
-    return False
+#    return False
     odom_pose = get_odom_pose()
     d_pose = _current_nav_pose - odom_pose
     dst = d_pose.position.x ** 2 + d_pose.position.y ** 2
@@ -95,6 +93,8 @@ def navigating():
             return False
         else:
             return True
+    else:
+        _navigating = False
     return _navigating
 
 def navigation_successful():
@@ -125,19 +125,54 @@ def pause_navigation():
 def resume_navigation():
     if _current_dest is not None:
         return navigate_to(_current_dest)
-        
+
+def navigate_to2(ix):
+    global _success
+    global _navigating, _nav_action
+    global _current_dest, _current_nav_pose
+    x, y = _poses[_tour[ix-1]]
+    _success = False
+    #print("Going to ", x, y)
+    p_pose = Pose(int(x*10), int(y*10), 0, angle_z=degrees(0))
+    odom_pose = get_odom_pose()
+    #print("odom_pose ", odom_pose)
+    #print("p_pose ", p_pose)
+    d_pose = p_pose - odom_pose
+    #print("d_pose ", d_pose)
+    theta = -1*odom_pose.rotation.angle_z.radians
+    #print("theta ", theta)
+    rx = d_pose.position.x* math.cos(theta) - d_pose.position.y*math.sin(theta)
+    ry = d_pose.position.x* math.sin(theta) + d_pose.position.y*math.cos(theta)
+    r_pose = Pose(int(rx), int(ry), 0, angle_z=degrees(0))
+    #print("r_pose ", r_pose)
+    _navigating = True
+    _current_dest = ix
+    
+    _current_nav_pose = p_pose
+    try:
+        _nav_action = mc._mycozmo.go_to_pose(r_pose, relative_to_robot=True,
+                                           num_retries=1)
+    except Exception as e:
+        import traceback
+        print(e)
+        traceback.print_exc()
+        _navigating = False
+        _nav_action.abort()
+    return _navigating
+
+    
 def navigate_to(ix):
     global _success
     global _navigating, _nav_action
     global _current_dest, _current_nav_pose
     x, y = _poses[_tour[ix-1]]
     _success = False
-    print("Going to ", x, y)
+    #print("Going to ", x, y)
     p_pose = Pose(int(x*10), int(y*10), 0, angle_z=degrees(0))
     odom_pose = get_odom_pose()
     d_pose = p_pose - odom_pose
-    print("odom_pose ", odom_pose)
-    print("d_pose ", d_pose)
+    #print("odom_pose ", odom_pose)
+    #print("d_pose ", d_pose)
     _navigating = True
     _current_dest = ix
     _current_nav_pose = p_pose

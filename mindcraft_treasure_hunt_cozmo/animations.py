@@ -15,7 +15,7 @@ def show_happy():
 def show_victory():
     try:
         mindcraft._mycozmo.play_anim_trigger(cozmo.anim.Triggers.CodeLabExcited).wait_for_completed()
-    except:
+    except Exception as e:
         import traceback
         traceback.print_exc()
         print(e)
@@ -33,7 +33,7 @@ def show_excited():
 def show_sad():
     try:
         mindcraft._mycozmo.play_anim_trigger(cozmo.anim.Triggers.CodeLabLose).wait_for_completed()
-    except:
+    except Exception as e:
         import traceback
         traceback.print_exc()
         print(e)
