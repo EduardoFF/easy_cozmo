@@ -56,7 +56,7 @@ def loc(index):
     return _tour[index-1]
 
 def initialize(use_server=False, server="localhost"):
-    mc._mycozmo.set_robot_volume(.1)
+    #mc._mycozmo.set_robot_volume(.1)
     # TODO: make use of server optional
     mc._mycozmo.world.undefine_all_custom_marker_objects()
     mc._mycozmo.go_to_pose_factory = MyGoToPose
@@ -105,9 +105,8 @@ def navigation_successful():
     return _nav_action.has_succeeded or _success
 
 def collect_reward(index):
-    return
     try:
-        mc._mycozmo.play_anim_trigger(cozmo.anim.Triggers.FeedingAteFullEnough_Normal).wait_for_completed()
+        mc._mycozmo.play_anim_trigger(cozmo.anim.Triggers.CodeLabWhoa).wait_for_completed()
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -131,6 +130,9 @@ def navigate_to2(ix):
     global _navigating, _nav_action
     global _current_dest, _current_nav_pose
     x, y = _poses[_tour[ix-1]]
+    _move_lift(0.1)
+    _move_head(degrees(0))
+
     _success = False
     #print("Going to ", x, y)
     p_pose = Pose(int(x*10), int(y*10), 0, angle_z=degrees(0))
