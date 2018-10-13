@@ -15,8 +15,8 @@ def cozmo_program():
                 pause_navigation()
                 resume_navigation()
         if navigation_successful():
-            say("Arrived to ", loc(current_loc))
-            collect_reward(current_loc)
+            say("", loc(current_loc))
+            #collect_reward(current_loc)
             current_loc = current_loc + 1
         else:
             error("Trying again")
