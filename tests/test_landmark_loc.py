@@ -9,8 +9,11 @@ def cozmo_program():
                                                 180, 180, 180, 180, True)
 
     landmarks = {CustomObjectTypes.CustomType05: Pose(0,0,0, angle_z = degrees(0))}
-    initialize_landmark_localization(landmarks)
+    initialize_landmark_localization()
     pause(3)
-    where_am_i()
+    while True:
+       # where_am_i()
+        print(get_odom_pose())
+        pause(0.5)
         
 run_program_with_viewer(cozmo_program)

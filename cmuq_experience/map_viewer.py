@@ -42,7 +42,7 @@ def on_message(client, userdata, message):
 client = None
 def listen_poses():
     global client
-    host = "172.20.85.77"
+    host = "192.168.100.94"
     client = mqtt.Client()
     client.connect(host)
     client.on_connect = on_connect
@@ -65,7 +65,7 @@ def updatefig(*args):
 
 
 if __name__ == "__main__":
-    with cbook.get_sample_data('/home/eduardo/Dropbox/cozmo/sdk/src/cmuq_experience/cozmoworld2.png') as image_file:
+    with cbook.get_sample_data('/home/eduardo/Dropbox/cozmo/sdk/src/mindcraft-treasure-hunt-cozmo/cmuq_experience/cozmoworld2.png') as image_file:
         image = plt.imread(image_file)
     print(image.shape)
 
