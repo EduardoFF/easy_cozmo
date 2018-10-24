@@ -245,10 +245,49 @@ def set_wheels_speeds(left_speed, right_speed):
         say_error("Invalid speed")
         return False
         
-    mindcraft._mycozmo.drive_wheel_motors(left_speed, right_speed,\
+    mindcraft._mycozmo.drive_wheel_motors(int(left_speed), int(right_speed),\
                                           l_wheel_acc=200, r_wheel_acc=200)
     return True
 def stop():
+    if not mindcraft._mycozmo.are_wheels_moving:
+        return True
     mindcraft._mycozmo.stop_all_motors()
     return True
 
+def stop_moving():
+    return stop()
+
+def move():
+    if mindcraft._mycozmo.are_wheels_moving:
+        return True
+    return set_wheels_speeds(5,5)
+
+def start_moving():
+    return move()
+
+def steer(value):
+    w = 45
+    v = 50
+    if value == 0:
+        return set_wheels_speeds(5,5)
+    swap = True
+    if value < 0:
+        swap = False
+        value *= -1
+    # normalize
+    if value > 100:
+        value = 1
+    value = int(((100 - value)/100.)*(600-100) + 100)
+    
+    rl = value
+    rr = value + 45
+    vl = (100*rl)/(rr+rl)
+    vr = 100 - vl
+    if swap:
+        vl, vr = vr, vl
+    print("vl ", vl, " vr ", vr)
+    return set_wheels_speeds(vl/10., vr/10.)
+        
+        
+        
+    

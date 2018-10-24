@@ -342,7 +342,7 @@ def pickup_cube_by_id(cube_id):
         if cube is None:
                 _say_error("I can't see cube ", cube_id)
                 return False
-        return _pickup_cube(cube)
+        return _pickup_visible_cube(cube)
 
 
 def pickup_cube_one():

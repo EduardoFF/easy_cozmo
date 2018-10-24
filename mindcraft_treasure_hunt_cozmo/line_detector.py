@@ -22,6 +22,7 @@ from PIL import Image, ImageDraw, ImageFont
 from . import mindcraft
 from .movements import _move_head, move_lift_ground
 from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians
+from .robot_utils import pause
 
 _line_detector = None
 class LineAnnotator(cozmo.annotate.Annotator):
@@ -124,6 +125,7 @@ def initialize_line_detector(algo='hough'):
         _line_detector = LineDetector(robot)
 
 def get_detected_line_angle():
+    # small pause to let the line detection thread processing some frames
     if abs(mindcraft._mycozmo.head_angle.degrees - df_line_detection_head_angle) > 3:
         mindcraft._mycozmo.set_head_angle(degrees(df_line_detection_head_angle)).wait_for_completed()
     #move_lift_ground()
@@ -131,4 +133,11 @@ def get_detected_line_angle():
         print("detector not initialized")
         return None
     return _line_detector.signal
+
+def is_line_detected():
+    pause(0.05)
+    if not _line_detector:
+        print("WARNING: line detector not initialized")
+        return False
+    return _line_detector.signal is not None
         

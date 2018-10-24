@@ -6,34 +6,21 @@ def cozmo_program():
     init_line_detection()
     move_lift_ground()
     while True:
-        angle = get_detected_line_angle()
-        if angle:
-            if angle < -15:
-                # should move left
-                if angle >-30 :
-                    right_speed = 2
-                    left_speed = 4
-                elif angle < -30:
-                    right_speed = 0
-                    left_speed = 5
-                else:
-                    right_speed = -2
-                    left_speed = 2
-            elif angle > 15:
-                #should move right
-                if angle < 30 :
-                    right_speed = 4
-                    left_speed = 2
-                else:
-                    right_speed = 5
-                    left_speed =0
-            else:
-                left_speed = 5
-                right_speed = 5
-            set_wheels_speeds(left_speed, right_speed)
-        else:
+        if not is_line_detected():
             stop()
-        pause(0.05)
+        else:
+            move()
+            angle = get_detected_line_angle()            
+            if angle <= -30:
+                steer(-100)
+            elif -30 < angle < -15:
+                steer(-50)
+            elif -15 <= angle <= 15:
+                steer(0)
+            elif 15 < angle <= 30:
+                steer(50)
+            elif 30 < angle:
+                steer(100)
 
         
 run_program_with_viewer(cozmo_program)
