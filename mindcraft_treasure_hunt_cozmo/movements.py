@@ -270,14 +270,14 @@ def steer(value):
     v = 50
     if value == 0:
         return set_wheels_speeds(5,5)
-    swap = True
+    swap = False
     if value < 0:
-        swap = False
+        swap = True
         value *= -1
     # normalize
     if value > 100:
         value = 1
-    value = int(((100 - value)/100.)*(600-100) + 100)
+    value = int(((100 - value)/100.)*(600-50) + 50)
     
     rl = value
     rr = value + 45
@@ -285,7 +285,6 @@ def steer(value):
     vr = 100 - vl
     if swap:
         vl, vr = vr, vl
-    print("vl ", vl, " vr ", vr)
     return set_wheels_speeds(vl/10., vr/10.)
         
         
