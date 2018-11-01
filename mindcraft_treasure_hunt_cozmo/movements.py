@@ -163,7 +163,16 @@ def reverse(distance):
 def move_backward(distance):
     return reverse(distance)
 
-def move_forward(distance):
+def move():
+    if mindcraft._mycozmo.are_wheels_moving:
+        return True
+    fspeed = int(df_forward_speed / 10)
+    return set_wheels_speeds(fspeed,fspeed)
+
+
+def move_forward(distance=None):
+    if distance is None:
+        return move()
     action =  mindcraft._mycozmo.drive_straight(distance_mm(distance*10),
                                                 speed=speed_mmps(df_forward_speed),
                                                 should_play_anim=False)
@@ -257,10 +266,12 @@ def stop():
 def stop_moving():
     return stop()
 
-def move():
-    if mindcraft._mycozmo.are_wheels_moving:
-        return True
-    return set_wheels_speeds(5,5)
+
+def move_forward():
+    return move()
+    
+def drive():
+    return move()
 
 def start_moving():
     return move()
@@ -287,6 +298,18 @@ def steer(value):
         vl, vr = vr, vl
     return set_wheels_speeds(vl/10., vr/10.)
         
+def steer_left(value):
+    if value < 0:
+        say_error("Invalid negative steer value")
+        return False
+    return steer(-1*value)
         
-        
+def steer_right(value):
+    if value < 0:
+        say_error("Invalid negative steer value")
+        return False
+    return steer(value)
+   
+def steer_straight():
+    return steer(0)
     
