@@ -7,8 +7,9 @@ import string
 
 if __name__ == "__main__":
     f = open(sys.argv[1])
-    f2 = open('script_template.py')
-    f3 = open('tmp.py', 'w')
+    mypath=os.path.dirname(__file__)
+    f2 = open("{path}/script_template.py".format(path=mypath))
+    f3 = open("{path}/tmp.py".format(path=mypath), 'w')
     for line2 in f2.readlines():
         if 'CODE' in line2:
             for line in f.readlines():
@@ -17,7 +18,7 @@ if __name__ == "__main__":
         else:
             f3.write(line2)
     f3.close()
-    os.system('python3 tmp.py')
+    os.system("python {path}/tmp.py".format(path=mypath))
     
     
     
