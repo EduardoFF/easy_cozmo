@@ -14,6 +14,19 @@ Getting Started
 -----------------
 .. literalinclude:: /../examples/demo_helloworld.py
 
+Configuring Sublime 3 to run programs with the pycozmo tool
+------------------
+
+Windows
+
+Add the bin folder to the PATH variable
+
+Copy the file pycozmo.sublime-build into the AppData\Roaming\Sublime Text 3\Packages/User
+
+Open Sublime 3
+
+Set build system to pycozmo
+
 .. toctree::
    :maxdepth: 2
 

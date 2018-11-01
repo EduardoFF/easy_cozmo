@@ -1,14 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 12 15:51:30 2018
-Copyright Kinvert All Rights Reserved
-If you would like to use this code for
-business or education please contact
-us for permission at:
-www.kinvert.com/
-
-@author: Keith
-"""
 
 import asyncio
 import cozmo
@@ -125,19 +115,21 @@ def initialize_line_detector(algo='hough'):
         _line_detector = LineDetector(robot)
 
 def get_detected_line_angle():
+    if not _line_detector:
+        print("WARNING: line detector not initialized, initializing ...")
+        initialize_line_detector()
+
     # small pause to let the line detection thread processing some frames
     if abs(mindcraft._mycozmo.head_angle.degrees - df_line_detection_head_angle) > 3:
         mindcraft._mycozmo.set_head_angle(degrees(df_line_detection_head_angle)).wait_for_completed()
     #move_lift_ground()
-    if not _line_detector:
-        print("detector not initialized")
-        return None
     return _line_detector.signal
 
 def is_line_detected():
-    pause(0.05)
     if not _line_detector:
-        print("WARNING: line detector not initialized")
-        return False
+        print("WARNING: line detector not initialized, initializing ...")
+        initialize_line_detector()
+
+    pause(0.05)
     return _line_detector.signal is not None
         

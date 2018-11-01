@@ -1,5 +1,4 @@
-init_line_detection()
-move_lift_ground()
+#move_lift_ground()
 while True:
     if not is_line_detected():
         stop()
