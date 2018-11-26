@@ -265,10 +265,6 @@ def stop():
 
 def stop_moving():
     return stop()
-
-
-def move_forward():
-    return move()
     
 def drive():
     return move()
