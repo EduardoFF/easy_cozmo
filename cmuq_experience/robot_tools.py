@@ -8,7 +8,7 @@ from mindcraft_treasure_hunt_cozmo.movements import _move_lift, _move_head
 #del speed_mmps
 from mygotopose import *
 from cozmo.objects import CustomObject, CustomObjectMarkers, CustomObjectTypes
-from mindcraft_treasure_hunt_cozmo.odometry import set_odom_origin, get_odom_pose
+from mindcraft_treasure_hunt_cozmo.odometry import set_odom_origin, get_odom_pose, reset_odometry
 from mindcraft_treasure_hunt_cozmo.mindcraft import run_program_with_viewer
 from mindcraft_treasure_hunt_cozmo.animations import show_victory
 import math
@@ -26,7 +26,7 @@ def error(msg):
     except:
         pass
 
-    
+
 def read_tour(fname):
     global _tour
     f = open(fname)
@@ -37,7 +37,13 @@ def read_tour(fname):
     f.close()
     print("READ TOUR of ", len(_tour), " sites")
     return len(_tour)
-    
+
+def tour_str():
+    str=""
+    for l in _tour:
+        str=str + "%d "%(l)
+    return str
+
 def read_locations(fname):
     global _poses
     f = open(fname)
@@ -66,6 +72,18 @@ def initialize(use_server=False, server="localhost"):
     _move_head(degrees(20))
     enable_head_light()
 
+def initialize_nav():
+    set_odom_origin(*_poses[_tour[0]])
+    reset_odometry()
+    _move_lift(0.1)
+    _move_head(degrees(20))
+    enable_head_light()
+    _navigating = False
+    nav_action = None
+    _current_nav_dest = None
+    _success = False
+
+
 def check_distance():
 #    return False
     odom_pose = get_odom_pose()
@@ -79,7 +97,7 @@ def check_distance():
     return False
 
 
-    
+
 def navigating():
     global _navigating, _success
     if _nav_action is None:
@@ -112,10 +130,10 @@ def collect_reward(index):
         traceback.print_exc()
         print(e)
 
-    
+
 def celebrate():
     show_victory()
-    
+
 def pause_navigation():
     global _navigating
     _nav_action.abort()
@@ -149,7 +167,7 @@ def navigate_to2(ix):
     #print("r_pose ", r_pose)
     _navigating = True
     _current_dest = ix
-    
+
     _current_nav_pose = p_pose
     try:
         _nav_action = mc._mycozmo.go_to_pose(r_pose, relative_to_robot=True,
@@ -162,7 +180,7 @@ def navigate_to2(ix):
         _nav_action.abort()
     return _navigating
 
-    
+
 def navigate_to(ix):
     global _success
     global _navigating, _nav_action
@@ -188,5 +206,3 @@ def navigate_to(ix):
         _navigating = False
         _nav_action.abort()
     return _navigating
-
-    
