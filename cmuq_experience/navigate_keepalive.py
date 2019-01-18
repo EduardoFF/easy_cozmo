@@ -15,7 +15,7 @@ class TourAnnotator(cozmo.annotate.Annotator):
         bounds = (0, 0, image.width, image.height)
         text = None
         try:
-            arialfont = ImageFont.truetype("arial.ttf", 28, encoding="unic")
+            arialfont = ImageFont.truetype("arial.ttf", 14, encoding="unic")
             if arialfont != None:
                 text = cozmo.annotate.ImageText('%s ' % msg, font=arialfont, color='green')
         except:
