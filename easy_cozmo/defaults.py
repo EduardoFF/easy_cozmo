@@ -34,4 +34,4 @@ df_enable_line_detection = False # to enable it, call
 df_line_detection_head_angle = -11
 
 df_max_wheel_speed = 70 # in mmps
-
+df_use_comm = False
