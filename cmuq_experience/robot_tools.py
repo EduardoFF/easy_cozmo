@@ -9,7 +9,7 @@ from mindcraft_treasure_hunt_cozmo.movements import _move_lift, _move_head
 from mygotopose import *
 from cozmo.objects import CustomObject, CustomObjectMarkers, CustomObjectTypes
 from mindcraft_treasure_hunt_cozmo.odometry import set_odom_origin, get_odom_pose, reset_odometry
-from mindcraft_treasure_hunt_cozmo.mindcraft import run_program_with_viewer
+from mindcraft_treasure_hunt_cozmo.mindcraft import run_program_with_viewer, run_program
 from mindcraft_treasure_hunt_cozmo.animations import show_victory
 import math
 import cozmo
@@ -90,9 +90,9 @@ def check_distance():
     d_pose = _current_nav_pose - odom_pose
     dst = d_pose.position.x ** 2 + d_pose.position.y ** 2
     dst = dst ** 0.5
-    print("distance to target : ", dst)
-    if dst < 30:
-        print("close enough, break")
+    #print("distance to target : ", dst)
+    if dst < 25:
+        #print("close enough, break")
         return True
     return False
 

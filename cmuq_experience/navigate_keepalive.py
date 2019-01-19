@@ -3,6 +3,7 @@ import time
 from kbhit import KBHit
 import mindcraft_treasure_hunt_cozmo.mindcraft as mc
 from PIL import Image, ImageDraw, ImageFont
+import sys
 
 kb = None
 msg="IDLE"
@@ -32,19 +33,25 @@ def start_tour():
     pause(1)
     initialize_nav()
     msg = "Tour %s, PRESS s or S to START, ESC to cancel"%(tour_str())
+    print(msg)
     while True:
         if kb.kbhit():
             c = kb.getch()
             if ord(c) == 27: # ESC
                 return
-            if ord(c) == 115 or ord(c) == 83:
+            elif ord(c) == 115 or ord(c) == 83:
                 msg = "STARTED"
-                print("GO!!!!")
+                print(msg)
                 break
+            else:
+                msg = "Tour %s, PRESS s or S to START, ESC to cancel"%(tour_str())
+                print(msg)
+        time.sleep(0.5)
     current_loc = 1
     start_time = time.time()
     while current_loc <= n:
         msg = "Going to %d"%(loc(current_loc))
+        print(msg)
         if kb.kbhit():
             c = kb.getch()
             if ord(c) == 27: # ESC
@@ -69,13 +76,17 @@ def start_tour():
     elapsed_time = time.time() - start_time
     say("task completed")
     msg = "COMPLETED! TOTAL_TIME %d seconds PRESS ESC to RESET"%(elapsed_time)
-    print("ELAPSED TIME ", elapsed_time)
+    print(msg)
     celebrate()
     while True:
         if kb.kbhit():
             c = kb.getch()
             if ord(c) == 27: # ESC
                 return
+            else:
+                msg = "PRESS ESC to RESET"
+                print(msg)
+        time.sleep(0.5)
 
 def cozmo_program():
     global kb, msg
@@ -86,17 +97,45 @@ def cozmo_program():
     robot = mc._mycozmo
     robot.world.image_annotator.add_annotator('touranno', touranno)
     kb = KBHit()
-    msg="Update tour and PRESS s or S to start tour"
+    msg="Update tour and PRESS s or S to start tour, x to EXIT"
+    print(msg)
     while True:
         if kb.kbhit():
             c = kb.getch()
             if ord(c) == 115 or ord(c)==83: # s or S
                 start_tour()
-                msg="Update tour and PRESS s or S to start tour"
+                msg="Update tour and PRESS s or S to start tour, x to EXIT"
+                print(msg)
+            if ord(c) == 88 or ord(c) == 120:
+                msg="Are you sure you want to exit? y/n"
+                print(msg)
+                confirm_exit = False
+                while True:
+                    if kb.kbhit():
+                        c = kb.getch()
+                        if ord(c) == 121 or ord(c)==89: # y or Y
+                            confirm_exit = True
+                            break
+                        elif ord(c) == 78 or ord(c) == 110:
+                            break
+                        else:
+                            msg="Please enter y or n"
+                            print(msg)
+                    time.sleep(0.5)
+                if confirm_exit:
+                    break
         time.sleep(0.5)
 
     kb.set_normal_term()
 
+if __name__ == "__main__":
+    video_enabled = True
+    for arg in sys.argv:
+        if arg == 'novideo' or arg == '--no-video' or arg == '-novideo':
+            video_enabled = False
+            print("novid")
 
-
-run_program_with_viewer(cozmo_program)
+    if video_enabled:
+        run_program_with_viewer(cozmo_program)
+    else:
+        run_program(cozmo_program)
