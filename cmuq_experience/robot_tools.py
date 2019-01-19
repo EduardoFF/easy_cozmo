@@ -30,6 +30,7 @@ def error(msg):
 def read_tour(fname):
     global _tour
     f = open(fname)
+    _tour = []
     for lines in f.readlines():
         s = lines.split()
         if len(s) > 0:
