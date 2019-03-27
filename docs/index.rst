@@ -6,32 +6,38 @@
 .. image:: right-col-mindcraft-logo.jpg
 .. .. image:: cozmo.jpeg
 
-Mindcraft - Treasure Hunt with Cozmo
+Mindcraft - Cozmo
 ================================================================
-   
 
-Getting Started
------------------
-.. literalinclude:: /../examples/demo_helloworld.py
+Welcome to Mindcraft - Cozmo's documentation. Get started with Installation and
+then get an overview with the Quickstart. There is also a more detailed Tutorial
+that shows how to create a small script with the library and tools provided
+here. Common tasks are described in the Examples section. The rest of the docs
+describe each component of the library in detail, with a full reference in the
+API section.
 
-Configuring Sublime 3 to run programs with the pycozmo tool
-------------------
+User's Guide
+------------
 
-Windows
-
-Add the bin folder to the PATH variable
-
-Copy the file pycozmo.sublime-build into the AppData\Roaming\Sublime Text 3\Packages/User
-
-Open Sublime 3
-
-Set build system to pycozmo
+This part of the documentation, which is mostly prose, begins with some
+background information about the Mindcraft workshop sessions with Cozmo , then
+focuses on step-by-step instructions for the installation and usage.
 
 .. toctree::
    :maxdepth: 2
 
+   installation
+   quickstart
    functions
-	      
 
 
+API Reference
+-------------
 
+If you are looking for information on a specific function, class or
+method, this part of the documentation is for you.
+
+.. toctree::
+   :maxdepth: 2
+
+   source/modules

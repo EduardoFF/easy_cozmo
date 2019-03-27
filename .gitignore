@@ -32,3 +32,5 @@ trunk*
 *.app
 
 *.pyc
+
+*tmp*
