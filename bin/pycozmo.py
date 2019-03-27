@@ -18,7 +18,5 @@ if __name__ == "__main__":
         else:
             f3.write(line2)
     f3.close()
+    os.system("reindent -n {path}/tmp.py".format(path=mypath))
     os.system("python {path}/tmp.py".format(path=mypath))
-    
-    
-    
