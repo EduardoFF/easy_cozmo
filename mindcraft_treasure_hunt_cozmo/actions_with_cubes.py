@@ -13,6 +13,7 @@ from .say import _say_error
 
 from . import mindcraft
 from .movements import *
+from .movements import _execute_go_to_pose
 import numpy as np
 
 from .mindcraft_defaults import df_scan_cube_speed,\
@@ -427,3 +428,28 @@ def place_on_top_of_two():
         return place_on_top(2)
 def place_on_top_of_three():
         return place_on_top(3)
+
+def center_cube(cube_id):
+        robot = mindcraft._mycozmo
+        if cube_id not in [1,2,3]:
+                say_error("Cube id " + str(cube_id) + " not good")
+                return False
+        robot.set_head_angle(degrees(0)).wait_for_completed()
+        robot.set_head_light(False)
+        cube = _get_visible_cube_by_id(cube_id)
+        if cube is None:
+                _say_error("I can't see cube ", cube_id)
+                return False
+        cube = _get_visible_cube_by_id(cube_id)
+        if cube is None:
+                _say_error("I can't see cube ", cube_id)
+                return False
+        rel_pose = _get_relative_pose(cube.pose, robot.pose)
+        print("RELATIVE POSE ", rel_pose)
+        cube_pose = (rel_pose.position.x, rel_pose.position.y)
+        print("CUBE POSE ", cube_pose)
+        angle = math.atan2(cube_pose[1], cube_pose[0])
+        print("Angle = ", angle)
+        pose = Pose(0, 0, 0, angle_z=radians(angle))
+        ret = _execute_go_to_pose(pose)
+        return ret
