@@ -43,6 +43,12 @@ def rotate_in_place(angle):
 def rotate(angle):
     return rotate_in_place(angle)
 
+def rotate_right(angle):
+    return rotate_in_place(angle)
+
+def rotate_left(angle):
+    return rotate_in_place(-1*angle)
+
 def _move_head(angle):
     action=None
     try:
