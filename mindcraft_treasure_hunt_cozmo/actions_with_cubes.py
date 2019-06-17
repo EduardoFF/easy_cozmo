@@ -453,3 +453,17 @@ def center_cube(cube_id):
         pose = Pose(0, 0, 0, angle_z=radians(angle))
         ret = _execute_go_to_pose(pose)
         return ret
+
+def distance_to_cube(cube_id):
+        robot = mindcraft._mycozmo
+        if cube_id not in [1,2,3]:
+                say_error("Cube id " + str(cube_id) + " not good")
+                return False
+        cube = _get_visible_cube_by_id(cube_id)
+        if not cube:
+                _say_error("I can't see cube ", cube_id)
+                return False
+        translation = robot.pose - cube.pose
+        dst = translation.position.x ** 2 + translation.position.y ** 2
+        dst = dst ** 0.5
+        return dst
