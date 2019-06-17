@@ -66,8 +66,8 @@ class LineDetector:
         self._robot.world.image_annotator.add_annotator('houghlinedetect', self.anno)
 
         self.signal = 0
-        
-    def on_img(self, event, *, image:cozmo.world.CameraImage, **kw):   
+
+    def on_img(self, event, *, image:cozmo.world.CameraImage, **kw):
         raw_img = image.raw_image
         raw_rgb = np.array(raw_img)
         cv2_image = cv.cvtColor(raw_rgb, cv.COLOR_RGB2BGR)
@@ -87,7 +87,7 @@ class LineDetector:
             self._ma_lines = self._ma_lines[-10:]
         self.cline = average_lines(self._ma_lines, cv2_image.shape[0])
 
-        
+
         middleY = int(height * df_houghdetector_horizon)
         if self.cline:
             x1, y1, x2, y2 = self.cline
@@ -102,12 +102,12 @@ class LineDetector:
 #            cv2_proc = draw_lines(cv2_image, [[self.cline]], thickness=10, color=[0,255,0])
 #            cv2_proc=cv.circle(cv2_proc, (self.signal, middleY), 3, (0,0,255), -1) #Draw middle circle RED
 #        raw_rgb = np.array(raw_img)
-        
+
 def init_line_detection():
     from .odometry import initialize_odometry
     initialize_line_detector()
     initialize_odometry()
-    
+
 def initialize_line_detector(algo='hough'):
     global _line_detector
     robot = mindcraft._mycozmo
@@ -132,4 +132,3 @@ def is_line_detected():
 
     pause(0.05)
     return _line_detector.signal is not None
-        
