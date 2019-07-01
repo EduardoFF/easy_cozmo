@@ -7,8 +7,6 @@ from .mindcraft_defaults import *
 from .line_detector import initialize_line_detector
 def initialize_robot(robot):
     robot.enable_all_reaction_triggers(False)
-    # define custom objects
-    unique_marker = False
     robot.world.undefine_all_custom_marker_objects()
     time.sleep(1)
     add_mindcraft_landmarks = False
@@ -65,8 +63,7 @@ def initialize_robot(robot):
                                        CustomObjectMarkers.Triangles5,
                                        65, 65, 40, 40, unique_marker)
 
-                                   
-                                   
+
     # todo: disable it by default
 #    robot.enable_facial_expression_estimation(False)
     robot.set_robot_volume(df_volume)
@@ -81,10 +78,10 @@ def initialize_robot(robot):
         gain_range = robot.camera.config.max_gain -  robot.camera.config.min_gain
         gain =  robot.camera.config.min_gain + gain_range*0.1
     #robot.camera.set_manual_exposure(exposure, gain)
-    
+
     robot.camera.image_stream_enabled = True
     if df_enable_line_detection:
         initialize_line_detector('hough')
-        
+
     #print("camera.image_stream_enabled ", df_image_stream_enabled)
     robot.world.disconnect_from_cubes()

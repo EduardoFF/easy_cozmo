@@ -7,13 +7,13 @@ from .mindcraft_defaults import  df_reverse_speed, \
 
 def rotate_in_place(angle):
     """**Rotate in place for a given angle in degrees**
-    
-    :param angle: Rotation angle (in degrees) 
+
+    :param angle: Rotation angle (in degrees)
     :type angle: float
 
     :return: True (succeeded) or False (failed)
     """
-    action = mindcraft._mycozmo.turn_in_place(degrees(-1*angle),speed=degrees(df_rotate_speed)) 
+    action = mindcraft._mycozmo.turn_in_place(degrees(-1*angle),speed=degrees(df_rotate_speed))
     try:
         action.wait_for_completed()
         if action.has_succeeded:
@@ -22,7 +22,7 @@ def rotate_in_place(angle):
             code, reason = action.failure_reason
             result = action.result
             print("WARNING RotateInPlace: code=%s reason='%s' result=%s" % (code, reason, result))
-            say_error("I couldn't rotate, sorry")     
+            say_error("I couldn't rotate, sorry")
     except Exception as e:
         import traceback
         print(e)
@@ -37,11 +37,17 @@ def rotate_in_place(angle):
         print(e)
         traceback.print_exc()
         say_error("Wheels faulty")
-  
+
     return False
 
 def rotate(angle):
     return rotate_in_place(angle)
+
+def rotate_right(angle):
+    return rotate_in_place(angle)
+
+def rotate_left(angle):
+    return rotate_in_place(-1*angle)
 
 def _move_head(angle):
     action=None
@@ -71,7 +77,7 @@ def _move_head(angle):
         say_error("Move head faulty")
 
     return False
-    
+
 
 def move_head_looking_up():
     """**Move head in looking up position**
@@ -93,7 +99,7 @@ def move_head_looking_forward():
     :return: True (succeededed) or False (failed)
     """
     return _move_head(degrees(0))
-    
+
 def _move_lift(height):
     action = mindcraft._mycozmo.set_lift_height(height)
     try:
@@ -119,7 +125,7 @@ def _move_lift(height):
         traceback.print_exc()
         say_error("Scan faulty")
     return False
-    
+
 def move_lift_down():
     """**Move lift close to the ground level**
 
@@ -133,7 +139,7 @@ def move_lift_ground():
     :return: True (succeededed) or False (failed)
     """
     return _move_lift(0)
-    
+
 def move_lift_up():
     """**Move lift close to the highest position**
 
@@ -163,7 +169,16 @@ def reverse(distance):
 def move_backward(distance):
     return reverse(distance)
 
-def move_forward(distance):
+def move():
+    if mindcraft._mycozmo.are_wheels_moving:
+        return True
+    fspeed = int(df_forward_speed / 10)
+    return set_wheels_speeds(fspeed,fspeed)
+
+
+def move_forward(distance=None):
+    if distance is None:
+        return move()
     action =  mindcraft._mycozmo.drive_straight(distance_mm(distance*10),
                                                 speed=speed_mmps(df_forward_speed),
                                                 should_play_anim=False)
@@ -196,18 +211,9 @@ def move_forward(distance):
 def move_forward_in_seconds(distance):
     pass
 
-def move_forward_avoiding_landmark(distance):
-    """**Move forward for a given distance while avoiding landmarks on
-    the way**
+def _execute_go_to_pose(pose, relative=True):
 
-    :param duration: Distance in centimeters
-    :type duration: float
-
-    :return: True (succeeded) or False (failed)
-    """
-    distance = distance * 10
-    pose = Pose(distance, 0, 0, angle_z=degrees(0))
-    action = mindcraft._mycozmo.go_to_pose(pose, relative_to_robot=True,
+    action = mindcraft._mycozmo.go_to_pose(pose, relative_to_robot=relative,
                                            num_retries=3)
     try:
         action.wait_for_completed()
@@ -236,6 +242,20 @@ def move_forward_avoiding_landmark(distance):
     return False
 
 
+def move_forward_avoiding_landmark(distance):
+    """**Move forward for a given distance while avoiding landmarks on
+    the way**
+
+    :param duration: Distance in centimeters
+    :type duration: float
+
+    :return: True (succeeded) or False (failed)
+    """
+    distance = distance * 10
+    pose = Pose(distance, 0, 0, angle_z=degrees(0))
+    return _execute_go_to_pose(pose)
+
+
 def set_wheels_speeds(left_speed, right_speed):
     """ Set the wheels speeds in cm """
     left_speed *= 10
@@ -244,11 +264,58 @@ def set_wheels_speeds(left_speed, right_speed):
        or abs(right_speed) > df_max_wheel_speed:
         say_error("Invalid speed")
         return False
-        
-    mindcraft._mycozmo.drive_wheel_motors(left_speed, right_speed,\
+
+    mindcraft._mycozmo.drive_wheel_motors(int(left_speed), int(right_speed),\
                                           l_wheel_acc=200, r_wheel_acc=200)
     return True
 def stop():
+    if not mindcraft._mycozmo.are_wheels_moving:
+        return True
     mindcraft._mycozmo.stop_all_motors()
     return True
 
+def stop_moving():
+    return stop()
+
+def drive():
+    return move()
+
+def start_moving():
+    return move()
+
+def steer(value):
+    w = 45
+    v = 50
+    if value == 0:
+        return set_wheels_speeds(5,5)
+    swap = False
+    if value < 0:
+        swap = True
+        value *= -1
+    # normalize
+    if value > 100:
+        value = 1
+    value = int(((100 - value)/100.)*(600-50) + 50)
+
+    rl = value
+    rr = value + 45
+    vl = (100*rl)/(rr+rl)
+    vr = 100 - vl
+    if swap:
+        vl, vr = vr, vl
+    return set_wheels_speeds(vl/10., vr/10.)
+
+def steer_left(value):
+    if value < 0:
+        say_error("Invalid negative steer value")
+        return False
+    return steer(-1*value)
+
+def steer_right(value):
+    if value < 0:
+        say_error("Invalid negative steer value")
+        return False
+    return steer(value)
+
+def steer_straight():
+    return steer(0)

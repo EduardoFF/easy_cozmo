@@ -1,14 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Feb 12 15:51:30 2018
-Copyright Kinvert All Rights Reserved
-If you would like to use this code for
-business or education please contact
-us for permission at:
-www.kinvert.com/
-
-@author: Keith
-"""
 
 import asyncio
 import cozmo
@@ -22,6 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 from . import mindcraft
 from .movements import _move_head, move_lift_ground
 from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians
+from .robot_utils import pause
 
 _line_detector = None
 class LineAnnotator(cozmo.annotate.Annotator):
@@ -75,8 +66,8 @@ class LineDetector:
         self._robot.world.image_annotator.add_annotator('houghlinedetect', self.anno)
 
         self.signal = 0
-        
-    def on_img(self, event, *, image:cozmo.world.CameraImage, **kw):   
+
+    def on_img(self, event, *, image:cozmo.world.CameraImage, **kw):
         raw_img = image.raw_image
         raw_rgb = np.array(raw_img)
         cv2_image = cv.cvtColor(raw_rgb, cv.COLOR_RGB2BGR)
@@ -96,7 +87,7 @@ class LineDetector:
             self._ma_lines = self._ma_lines[-10:]
         self.cline = average_lines(self._ma_lines, cv2_image.shape[0])
 
-        
+
         middleY = int(height * df_houghdetector_horizon)
         if self.cline:
             x1, y1, x2, y2 = self.cline
@@ -111,12 +102,12 @@ class LineDetector:
 #            cv2_proc = draw_lines(cv2_image, [[self.cline]], thickness=10, color=[0,255,0])
 #            cv2_proc=cv.circle(cv2_proc, (self.signal, middleY), 3, (0,0,255), -1) #Draw middle circle RED
 #        raw_rgb = np.array(raw_img)
-        
+
 def init_line_detection():
     from .odometry import initialize_odometry
     initialize_line_detector()
     initialize_odometry()
-    
+
 def initialize_line_detector(algo='hough'):
     global _line_detector
     robot = mindcraft._mycozmo
@@ -124,11 +115,20 @@ def initialize_line_detector(algo='hough'):
         _line_detector = LineDetector(robot)
 
 def get_detected_line_angle():
+    if not _line_detector:
+        print("WARNING: line detector not initialized, initializing ...")
+        initialize_line_detector()
+
+    # small pause to let the line detection thread processing some frames
     if abs(mindcraft._mycozmo.head_angle.degrees - df_line_detection_head_angle) > 3:
         mindcraft._mycozmo.set_head_angle(degrees(df_line_detection_head_angle)).wait_for_completed()
     #move_lift_ground()
-    if not _line_detector:
-        print("detector not initialized")
-        return None
     return _line_detector.signal
-        
+
+def is_line_detected():
+    if not _line_detector:
+        print("WARNING: line detector not initialized, initializing ...")
+        initialize_line_detector()
+
+    pause(0.05)
+    return _line_detector.signal is not None
