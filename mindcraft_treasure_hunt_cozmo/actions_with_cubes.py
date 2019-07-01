@@ -11,12 +11,12 @@ from cozmo.objects import LightCubeIDs, LightCube
 from .say import *
 from .say import _say_error
 
-from . import mindcraft
+from . import easy_cozmo
 from .movements import *
 from .movements import _execute_go_to_pose
 import numpy as np
 
-from .mindcraft_defaults import df_scan_cube_speed,\
+from .defaults import df_scan_cube_speed,\
         df_use_headlight_for_scan_cube,\
         df_move_relative_refined,\
         df_align_distance,\
@@ -231,7 +231,7 @@ def _move_relative_to_cube(cube, pose, refined=df_move_relative_refined):
 
 def _find_nearest_face(cube):
         import math
-        robot = mindcraft._mycozmo
+        robot = easy_cozmo._robot
         cube_pose1_relative_to_robot = _get_relative_pose(cube.pose, robot.pose)
         #print("relative pose1 ", cube_pose1_relative_to_robot)
         cube_pose2_relative_to_robot = robot.pose.define_pose_relative_this(cube.pose)
@@ -274,8 +274,8 @@ def align_with_nearest_cube(distance= df_align_distance,
 
 def pickup_cube():
         """ """
-        mindcraft._mycozmo.set_head_angle(degrees(0)).wait_for_completed()
-        mindcraft._mycozmo.set_head_light(False)
+        easy_cozmo._robot.set_head_angle(degrees(0)).wait_for_completed()
+        easy_cozmo._robot.set_head_light(False)
         cube = _get_visible_cube()
         if cube is None:
                 _say_error("I can't see cube ", cube_id)
@@ -289,7 +289,7 @@ def _pickup_visible_cube(cube):
                 return False
         action=None
         try:
-                action=mindcraft._mycozmo.pickup_object(cube, num_retries=df_pickup_retries)
+                action=easy_cozmo._robot.pickup_object(cube, num_retries=df_pickup_retries)
                 action.wait_for_completed()
                 if action.has_failed:
                         code, reason = action.failure_reason
@@ -337,8 +337,8 @@ def pickup_cube_by_id(cube_id):
         if cube_id not in [1,2,3]:
                 say_error("Cube id " + str(cube_id) + " not good")
                 return False
-        mindcraft._mycozmo.set_head_angle(degrees(0)).wait_for_completed()
-        mindcraft._mycozmo.set_head_light(False)
+        easy_cozmo._robot.set_head_angle(degrees(0)).wait_for_completed()
+        easy_cozmo._robot.set_head_light(False)
         cube = _get_visible_cube_by_id(cube_id)
         if cube is None:
                 _say_error("I can't see cube ", cube_id)
@@ -398,15 +398,15 @@ def place_on_top(cube_id):
         if cube_id not in [1,2,3]:
                 say_error("Cube id " + str(cube_id) + " not good")
                 return False
-        mindcraft._mycozmo.set_head_angle(degrees(0)).wait_for_completed()
-        mindcraft._mycozmo.set_head_light(False)
+        easy_cozmo._robot.set_head_angle(degrees(0)).wait_for_completed()
+        easy_cozmo._robot.set_head_light(False)
         cube = _get_visible_cube_by_id(cube_id)
         if not cube:
                 _say_error("I can't see cube ", cube_id)
                 return False
         action=None
         try:
-                action=mindcraft._mycozmo.place_on_object(cube, num_retries=df_pickup_retries)
+                action=easy_cozmo._robot.place_on_object(cube, num_retries=df_pickup_retries)
                 action.wait_for_completed()
                 if action.has_failed:
                         code, reason = current_action.failure_reason
@@ -430,7 +430,7 @@ def place_on_top_of_three():
         return place_on_top(3)
 
 def center_cube(cube_id):
-        robot = mindcraft._mycozmo
+        robot = easy_cozmo._robot
         if cube_id not in [1,2,3]:
                 say_error("Cube id " + str(cube_id) + " not good")
                 return False
@@ -455,7 +455,7 @@ def center_cube(cube_id):
         return ret
 
 def distance_to_cube(cube_id):
-        robot = mindcraft._mycozmo
+        robot = easy_cozmo._robot
         if cube_id not in [1,2,3]:
                 say_error("Cube id " + str(cube_id) + " not good")
                 return False

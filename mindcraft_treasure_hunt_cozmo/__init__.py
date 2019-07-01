@@ -1,5 +1,5 @@
-from .mindcraft_defaults import *
-from .mindcraft import *
+from .defaults import *
+from .easy_cozmo import *
 from .actions_with_cubes import *
 from .actions_with_faces import *
 from .actions_with_objects import *
@@ -11,4 +11,3 @@ from .say import *
 from .animations import *
 from .line_detector import *
 from .odometry import *
-

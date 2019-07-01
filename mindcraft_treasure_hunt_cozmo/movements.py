@@ -1,8 +1,8 @@
 from cozmo.util import degrees, Pose, distance_mm, speed_mmps
 import cozmo
-from . import mindcraft
+from . import easy_cozmo
 from .say import _say_error, say_error
-from .mindcraft_defaults import  df_reverse_speed, \
+from .defaults import  df_reverse_speed, \
     df_rotate_speed, df_forward_speed, df_max_wheel_speed
 
 def rotate_in_place(angle):
@@ -13,7 +13,7 @@ def rotate_in_place(angle):
 
     :return: True (succeeded) or False (failed)
     """
-    action = mindcraft._mycozmo.turn_in_place(degrees(-1*angle),speed=degrees(df_rotate_speed))
+    action = easy_cozmo._robot.turn_in_place(degrees(-1*angle),speed=degrees(df_rotate_speed))
     try:
         action.wait_for_completed()
         if action.has_succeeded:
@@ -52,7 +52,7 @@ def rotate_left(angle):
 def _move_head(angle):
     action=None
     try:
-        action=mindcraft._mycozmo.set_head_angle(angle)
+        action=easy_cozmo._robot.set_head_angle(angle)
         action.wait_for_completed()
         if action.has_succeeded:
             return True
@@ -101,7 +101,7 @@ def move_head_looking_forward():
     return _move_head(degrees(0))
 
 def _move_lift(height):
-    action = mindcraft._mycozmo.set_lift_height(height)
+    action = easy_cozmo._robot.set_lift_height(height)
     try:
         action.wait_for_completed()
         if action.has_succeeded:
@@ -155,7 +155,7 @@ def reverse_in_seconds(duration):
     :return: True (succeededed) or False (failed)
     """
     try:
-        mindcraft._mycozmo.drive_wheels(-1*df_reverse_speed, -1*df_reverse_speed, duration=duration)
+        easy_cozmo._robot.drive_wheels(-1*df_reverse_speed, -1*df_reverse_speed, duration=duration)
     except Exception as e:
         say_error("I can't move in reverse")
         return False
@@ -170,7 +170,7 @@ def move_backward(distance):
     return reverse(distance)
 
 def move():
-    if mindcraft._mycozmo.are_wheels_moving:
+    if easy_cozmo._robot.are_wheels_moving:
         return True
     fspeed = int(df_forward_speed / 10)
     return set_wheels_speeds(fspeed,fspeed)
@@ -179,7 +179,7 @@ def move():
 def move_forward(distance=None):
     if distance is None:
         return move()
-    action =  mindcraft._mycozmo.drive_straight(distance_mm(distance*10),
+    action =  easy_cozmo._robot.drive_straight(distance_mm(distance*10),
                                                 speed=speed_mmps(df_forward_speed),
                                                 should_play_anim=False)
     try:
@@ -213,7 +213,7 @@ def move_forward_in_seconds(distance):
 
 def _execute_go_to_pose(pose, relative=True):
 
-    action = mindcraft._mycozmo.go_to_pose(pose, relative_to_robot=relative,
+    action = easy_cozmo._robot.go_to_pose(pose, relative_to_robot=relative,
                                            num_retries=3)
     try:
         action.wait_for_completed()
@@ -265,13 +265,13 @@ def set_wheels_speeds(left_speed, right_speed):
         say_error("Invalid speed")
         return False
 
-    mindcraft._mycozmo.drive_wheel_motors(int(left_speed), int(right_speed),\
+    easy_cozmo._robot.drive_wheel_motors(int(left_speed), int(right_speed),\
                                           l_wheel_acc=200, r_wheel_acc=200)
     return True
 def stop():
-    if not mindcraft._mycozmo.are_wheels_moving:
+    if not easy_cozmo._robot.are_wheels_moving:
         return True
-    mindcraft._mycozmo.stop_all_motors()
+    easy_cozmo._robot.stop_all_motors()
     return True
 
 def stop_moving():

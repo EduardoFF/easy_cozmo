@@ -1,9 +1,8 @@
-from .mindcraft_defaults import df_volume, df_image_stream_enabled
 from cozmo.objects import CustomObject, CustomObjectMarkers, CustomObjectTypes
 import time
 from .movements import move_lift_down
 from .robot_utils import enable_head_light, disable_head_light
-from .mindcraft_defaults import *
+from .defaults import *
 from .line_detector import initialize_line_detector
 def initialize_robot(robot):
     robot.enable_all_reaction_triggers(False)

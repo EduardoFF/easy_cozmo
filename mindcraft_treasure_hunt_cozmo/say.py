@@ -7,13 +7,13 @@ def _say_error(errormsg, *args):
 
     :return: True (suceeded) or False (failed)
     """
-    from .mindcraft import _mycozmo
-    
+    from .easy_cozmo import _robot
+
     #errormsg = "ERROR, "+errormsg
     errormsg = errormsg + ' '.join(map(str, args))
     print("ERROR ",errormsg)
-#    _mycozmo.say_text(errormsg).wait_for_completed()
-    
+#    _robot.say_text(errormsg).wait_for_completed()
+
 def say_error(errormsg):
     """**Say "ERROR" followed by a message**
 
@@ -23,11 +23,11 @@ def say_error(errormsg):
 
     :return: True (suceeded) or False (failed)
     """
-    from .mindcraft import _mycozmo
-    
+    from .easy_cozmo import _robot
+
     errormsg = "ERROR, "+errormsg
     print(errormsg)
-    _mycozmo.say_text(errormsg).wait_for_completed()
+    _robot.say_text(errormsg).wait_for_completed()
 
 def say(txtmsg, *args):
     """**Say a simple message**
@@ -42,11 +42,11 @@ def say(txtmsg, *args):
     :return: True (suceeded) or False (failed)
     """
 
-    from .mindcraft import _mycozmo
+    from .easy_cozmo import _robot
 
     txtmsg = txtmsg + ' '.join(map(str, args))
     print("SAY: "+txtmsg)
-    _mycozmo.say_text(txtmsg).wait_for_completed()
+    _robot.say_text(txtmsg).wait_for_completed()
 
 def _say(txtmsg, *args):
     """**Print  a simple message **
@@ -61,7 +61,7 @@ def _say(txtmsg, *args):
     :return: True (suceeded) or False (failed)
     """
 
-    from .mindcraft import _mycozmo
+    from .easy_cozmo import _robot
 
     txtmsg = txtmsg + ' '.join(map(str, args))
     print("SAY: "+txtmsg)

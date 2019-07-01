@@ -7,9 +7,9 @@ import numpy as np
 import math
 import sys
 from .line_detection_utils import pipeline, draw_lines, average_lines
-from .mindcraft_defaults import *
+from .defaults import *
 from PIL import Image, ImageDraw, ImageFont
-from . import mindcraft
+from . import easy_cozmo
 from .movements import _move_head, move_lift_ground
 from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians
 from .robot_utils import pause
@@ -110,7 +110,7 @@ def init_line_detection():
 
 def initialize_line_detector(algo='hough'):
     global _line_detector
-    robot = mindcraft._mycozmo
+    robot = easy_cozmo._robot
     if algo == 'hough':
         _line_detector = LineDetector(robot)
 
@@ -120,8 +120,8 @@ def get_detected_line_angle():
         initialize_line_detector()
 
     # small pause to let the line detection thread processing some frames
-    if abs(mindcraft._mycozmo.head_angle.degrees - df_line_detection_head_angle) > 3:
-        mindcraft._mycozmo.set_head_angle(degrees(df_line_detection_head_angle)).wait_for_completed()
+    if abs(easy_cozmo._robot.head_angle.degrees - df_line_detection_head_angle) > 3:
+        easy_cozmo._robot.set_head_angle(degrees(df_line_detection_head_angle)).wait_for_completed()
     #move_lift_ground()
     return _line_detector.signal
 

@@ -11,12 +11,12 @@ from cozmo.objects import CustomObject
 from .say import *
 from .say import _say_error
 
-from . import mindcraft
+from . import easy_cozmo
 from .movements import *
 from .movements import _execute_go_to_pose
 import numpy as np
 
-from .mindcraft_defaults import df_scan_object_speed,\
+from .defaults import df_scan_object_speed,\
         df_use_headlight_for_scan_object,\
         df_move_relative_refined,\
         df_align_distance,\
@@ -168,7 +168,7 @@ def align_with_nearest_marker(distance= df_align_distance,
 
 def center_marker(marker_id,
                   use_distance_threshold=df_use_headlight_for_scan_object):
-        robot = mindcraft._mycozmo
+        robot = easy_cozmo._robot
         marker = _get_visible_marker_by_id(marker_id,
                                            use_distance_threshold=use_distance_threshold)
         if marker is None:

@@ -11,11 +11,11 @@ from cozmo.objects import CustomObject, LightCube
 from .say import *
 from .say import _say_error
 
-from . import mindcraft
+from . import easy_cozmo
 from .movements import *
 import numpy as np
 
-from .mindcraft_defaults import df_scan_object_speed,\
+from .defaults import df_scan_object_speed,\
         df_use_headlight_for_scan_object,\
         df_move_relative_refined,\
         df_align_distance,\
@@ -43,7 +43,7 @@ def _get_visible_landmarks():
         return _get_visible_objects(_is_landmark, use_distance_threshold=False)
 
 def scan_for_landmark(angle, scan_speed=df_scan_object_speed):
-        
+
         """**Rotate in place while looking for an object**
 
         This function executes a rotation, with certain angular speed
@@ -61,7 +61,7 @@ def scan_for_landmark(angle, scan_speed=df_scan_object_speed):
 
         :return: True (suceeded) or False (failed).
         """
-        
+
         if not _scan_for_object(angle, valid_object_check=_is_landmark,
                                 use_distance_threshold = False):
                 return
@@ -99,11 +99,11 @@ def double_scan_for_landmark(angle, scan_speed=df_scan_object_speed,
         :return: True (suceeded) or False (failed)
         """
         if not _double_scan_for_object(angle=angle, scan_speed=scan_speed,
-                                   valid_object_check=_is_landmark, 
+                                   valid_object_check=_is_landmark,
                                    headlight_switching_enabled = headlight_switching_enabled):
                 _say_error("I couldn't find a landmark, sorry")
                 return False
-        
+
 
         landmark = _get_visible_landmark()
         if not landmark:

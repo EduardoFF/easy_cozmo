@@ -9,8 +9,8 @@ import asyncio
 import cozmo
 import math
 import sys
-from .mindcraft_defaults import *
-from . import mindcraft
+from .defaults import *
+from . import easy_cozmo
 from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians, pose_z_angle
 from math import pi, sqrt, sin, cos, atan2, exp
 _traveled_distance = 0
@@ -25,7 +25,7 @@ def wrap_angle(angle_rads):
         return angle_rads - 2*pi
     else:
         return angle_rads
-    
+
 def on_motion(event, *, robot: cozmo.robot.Robot , **kw):
     global last_odom_pose, _traveled_distance, _odom_pose
     if robot.are_wheels_moving:
@@ -48,21 +48,20 @@ def on_motion(event, *, robot: cozmo.robot.Robot , **kw):
 
         last_odom_pose = robot.pose
         _traveled_distance += dist
-        
+
 def initialize_odometry():
     global _traveled_distance, _odom_pose
     _traveled_distance = 0
     _odom_pose = pose_z_angle(0,0,0,degrees(0))
-    mindcraft._mycozmo.add_event_handler(cozmo.robot.EvtRobotStateUpdated,
+    easy_cozmo._robot.add_event_handler(cozmo.robot.EvtRobotStateUpdated,
                                          on_motion)
 def reset_odometry():
     global _traveled_distance, _odom_pose
     _traveled_distance = 0
     _odom_pose = pose_z_angle(0,0,0,radians(0))
-        
+
 def get_distance_traveled():
     return _traveled_distance/10.
 
 def get_odom_pose():
     return _odom_pose
-        

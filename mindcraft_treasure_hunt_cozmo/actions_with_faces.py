@@ -4,8 +4,8 @@ import asyncio
 import time
 import cozmo
 from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians
-from .mindcraft_defaults import df_scan_face_speed
-from . import mindcraft
+from .defaults import df_scan_face_speed
+from . import easy_cozmo
 from .say import *
 from .say import _say_error
 from .movements import *
@@ -18,7 +18,7 @@ def is_face_visible():
 """ returns a face object """
 
 def _get_visible_face(only_named=False):
-        robot = mindcraft._mycozmo
+        robot = easy_cozmo._robot
         try:
                 for visible_face in robot.world.visible_faces:
                         if only_named:
@@ -61,10 +61,10 @@ def _scan_for_faces(angle=360, scan_speed=df_scan_face_speed, only_named=False):
 
         :return: True (suceeded) or False (failed)
         """
-        robot = mindcraft._mycozmo
-        # makes positive angles cw 
+        robot = easy_cozmo._robot
+        # makes positive angles cw
         angle *= -1
-        
+
         action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed))
         #print("started first action ")
         while( not _get_visible_face(only_named=only_named) ):
@@ -77,7 +77,7 @@ def _scan_for_faces(angle=360, scan_speed=df_scan_face_speed, only_named=False):
                         while action.is_running:
                                 action.abort()
                                 time.sleep(.5)
-                                                                
+
         except Exception as e:
                 import traceback
                 print(e)
@@ -95,11 +95,11 @@ def _scan_for_faces(angle=360, scan_speed=df_scan_face_speed, only_named=False):
                 _say_error("I can't find a face, sorry")
                 return False
         return True
-        
+
 def scan_for_teammates(angle=360, scan_speed=df_scan_face_speed):
         return _scan_for_faces(angle, scan_speed, only_named=True)
 
-        
+
 def scan_for_faces(angle=360,scan_speed=df_scan_face_speed):
         """**Rotate in place while looking for any human faces**
 
@@ -156,31 +156,31 @@ def say_something_to_visible_teammate( text_before='', text_after='', *args):
 
         :return: True (suceeded) or False (failed)
         """
-        
+
         if not _align_with_visible_face(once=True):
                 _say_error("I can't see any teammate, sorry")
                 return False
-                
+
         name = _get_visible_teammate_name()
         if name == "":
                 _say_error("I can't identify teammate, sorry")
                 return False
-        
+
         text_after = text_after + ' '.join(map(str, args))
 
-        mindcraft._mycozmo.say_text(text_before+" "+name+" "+text_after).wait_for_completed()
+        easy_cozmo._robot.say_text(text_before+" "+name+" "+text_after).wait_for_completed()
         return True
 
 def enable_facial_expression_recognition():
         """**Enable facial expresion recognition to identify mood**
         """
-        mindcraft._mycozmo.enable_facial_expression_estimation(enable=True)
-        
+        easy_cozmo._robot.enable_facial_expression_estimation(enable=True)
+
 def disable_facial_expression_recognition():
         """**Disable facial expresion recognition**
         """
 
-        mindcraft._mycozmo.enable_facial_expression_estimation(enable=False)
+        easy_cozmo._robot.enable_facial_expression_estimation(enable=False)
 
 def wait_for_a_smiling_face_visible(timeout=False):
         """****
@@ -200,15 +200,15 @@ def wait_for_a_smiling_face_visible(timeout=False):
                         time.sleep(.2)
         face = _get_visible_face()
         if face:
-                retval |= face.known_expression == FACIAL_EXPRESSION_HAPPY 
+                retval |= face.known_expression == FACIAL_EXPRESSION_HAPPY
         disable_facial_expression_recognition()
-        
+
         return retval
 
 
 def _align_with_visible_face(once=False):
         face_to_follow = None
-        robot = mindcraft._mycozmo
+        robot = easy_cozmo._robot
 
         while True:
                 turn_action = None
@@ -235,7 +235,7 @@ def _align_with_visible_face(once=False):
                 time.sleep(.2)
         return True
 
-            
+
 def align_with_face():
         """**Align with any visible face**
 
@@ -249,4 +249,3 @@ def align_with_face():
         """
 
         return _align_with_visible_face(once=True)
-    
