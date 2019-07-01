@@ -1,4 +1,4 @@
-from mindcraft_treasure_hunt_cozmo import *
+from easy_cozmo import *
 
 def cozmo_program():
     CODE
