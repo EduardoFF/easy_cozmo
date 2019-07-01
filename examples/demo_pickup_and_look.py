@@ -1,7 +1,7 @@
 """
 Exercise 1
 """
-from mindcraft_treasure_hunt_cozmo import *
+from easy_cozmo import *
 def pickup_cubes():
     for cube_id in [1,2,3]:
         say("Searching for cube", cube_id)
@@ -27,6 +27,6 @@ def pickup_cubes():
             say("Sorry, I couldn't find the cube")
     say("Completed the task")
     show_dancing()
-        
+
 run_program_with_viewer(pickup_cubes)
 #run_program(pickup_cubes)
