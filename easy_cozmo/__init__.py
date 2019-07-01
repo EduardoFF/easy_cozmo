@@ -11,3 +11,5 @@ from .say import *
 from .animations import *
 from .line_detector import *
 from .odometry import *
+from .ball_detector import *
+from .cv_utils import *
