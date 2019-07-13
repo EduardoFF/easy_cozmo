@@ -34,6 +34,25 @@ from .actions_with_objects import _get_visible_object, \
         _get_relative_pose, \
         _get_nearest_object
 
+""" returns cube object, not necessarily visible """
+def _get_localized_cube_by_id(cube_id):
+        robot = easy_cozmo._robot
+        cube = robot.world.get_light_cube(cube_id)
+        if cube is not None:
+                if cube.pose.origin_id == -1:
+                        return None
+                if cube.pose.origin_id == robot.pose.origin_id:
+                        return cube
+        return None
+
+def _invalidate_cube_poses():
+        robot = easy_cozmo._robot
+        for cube_id in [1,2,3]:
+                cube = robot.world.get_light_cube(cube_id)
+                if cube is not None:
+                        cube.pose.invalidate()
+
+
 def _get_visible_cube_by_id(cube_id):
         def check_cube_id(obj):
                 return _is_cube(obj) and obj.cube_id == cube_id

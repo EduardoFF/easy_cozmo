@@ -9,6 +9,8 @@ def initialize_robot(robot):
     robot.world.undefine_all_custom_marker_objects()
     time.sleep(1)
 
+    for obj in robot.world._objects.values():
+            obj.pose.invalidate()
     # todo: disable it by default
 #    robot.enable_facial_expression_estimation(False)
     robot.set_robot_volume(df_volume)
