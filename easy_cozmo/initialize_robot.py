@@ -1,6 +1,6 @@
 from cozmo.objects import CustomObject, CustomObjectMarkers, CustomObjectTypes
 import time
-from .movements import move_lift_down
+from .movements import move_lift_down, move_lift_ground, move_head_looking_forward
 from .robot_utils import enable_head_light, disable_head_light
 from .defaults import *
 from .line_detector import initialize_line_detector
@@ -14,7 +14,8 @@ def initialize_robot(robot):
     # todo: disable it by default
 #    robot.enable_facial_expression_estimation(False)
     robot.set_robot_volume(df_volume)
-    move_lift_down()
+    move_lift_ground()
+    move_head_looking_forward()
     disable_head_light()
     if df_camera_auto_exposure_enabled:
         robot.camera.enable_auto_exposure(True)
