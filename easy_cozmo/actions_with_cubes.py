@@ -58,7 +58,7 @@ def _get_visible_cube_by_id(cube_id):
                 return _is_cube(obj) and obj.cube_id == cube_id
         cube = _get_visible_object(valid_object_check=check_cube_id)
         if not cube:
-                return False
+                return None
         return cube
 
 def _cube_one():
@@ -290,6 +290,30 @@ def align_with_nearest_cube(distance= df_align_distance,
         cube = _get_nearest_object(_is_cube)
         return _align_with_cube(cube)
 
+def align_with_cube_by_id(cube_id, distance= df_align_distance,
+                            refined = df_align_refined):
+        """**Align with nearest cube**
+
+        Takes Cozmo toward the nearest cube, and aligns it to the
+        cube's nearest face.
+
+        :param distance: Desired distance between Cozmo and the cube
+        :type distance: float
+
+        :return: True (suceeded) or False (failed) """
+        from .actions_with_cubes import _get_visible_cube_by_id
+        if cube_id not in [1,2,3]:
+                say_error("Cube id " + str(cube_id) + " not good")
+                return False
+        easy_cozmo._robot.set_head_angle(degrees(0)).wait_for_completed()
+        easy_cozmo._robot.set_head_light(False)
+        cube = _get_visible_cube_by_id(cube_id)
+        if cube is None:
+                _say_error("I can't see cube ", cube_id)
+                return False
+
+        return _align_with_cube(cube)
+
 
 def pickup_cube():
         """ """
@@ -478,7 +502,7 @@ def distance_to_cube(cube_id):
         if cube_id not in [1,2,3]:
                 say_error("Cube id " + str(cube_id) + " not good")
                 return False
-        cube = _get_visible_cube_by_id(cube_id)
+        cube = _get_localized_cube_by_id(cube_id)
         if not cube:
                 _say_error("I can't see cube ", cube_id)
                 return False
