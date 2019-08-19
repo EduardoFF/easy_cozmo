@@ -7,7 +7,7 @@ except Exception: #ImportError
 def color_segmentation(cvimage, **kwargs):
     blurred = cv2.GaussianBlur(cvimage, (11, 11), 0)
     hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
-
+    height, width, channels = cvimage.shape
     # construct a mask for the color "green", then perform
     # a series of dilations and erosions to remove any small
     # blobs left in the mask
@@ -16,14 +16,19 @@ def color_segmentation(cvimage, **kwargs):
     mask = cv2.inRange(hsv, hsv_low, hsv_high)
     mask = cv2.erode(mask, None, iterations=2)
     mask = cv2.dilate(mask, None, iterations=2)
+
+    mask_cropped = crop_image_for_ball(mask.copy(), width, height)
+    mask = mask_cropped
+
     return mask
 
 def crop_image_for_ball(cvimage, width, height):
     import numpy as np
+
     region_of_interest_vertices = [
         (0, height),
-        (0, 0.70*height),
-        (width, 0.70*height),
+        (0, 0.30*height),
+        (width, 0.30*height),
         (width, height)
     ]
     cropped_image = region_of_interest(
@@ -45,10 +50,9 @@ def detect_ball(cvimage,tag=True, **kwargs):
 
     height, width, channels = cvimage.shape
 
-
     mask = color_segmentation(frame,**kwargs)
 
-#    mask = crop_image_for_ball(mask.copy(), width, height)
+
 
     # find contours in the mask and initialize the current
     # (x, y) center of the ball
