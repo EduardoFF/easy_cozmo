@@ -18,10 +18,10 @@ from .robot_utils import enable_head_light, disable_head_light
 from .say import *
 import time
 from .odometry import *
-from .actions_with_cubes import scan_for_cube_by_id, _get_visible_cube_by_id, _get_relative_pose
+from .actions_with_cubes import scan_for_cube_by_id, _get_visible_cube_by_id, _get_relative_pose, _get_localized_cube_by_id,distance_to_cube
 from .actions_with_custom_markers import scan_for_marker_by_id, _get_visible_marker_by_id, center_marker
 _ball_detector = None
-_df_scan_ball_speed = 5 #in degrees
+_df_scan_ball_speed = 17 #in degrees
 _at_home = False
 _ball_detection_initialized = False
 
@@ -47,7 +47,7 @@ if _at_home:
     _df_hh = 4
     _df_sl = 193
     _df_sh = 255
-    _df_vl = 140
+    _df_vl = 160
     _df_vh = 255
     _df_gain = 0.77
     _df_exp = 44
@@ -55,7 +55,7 @@ if _at_home:
 else:
     _df_hl = 0
     _df_hh = 11
-    _df_sl = 138
+    _df_sl = 160
     _df_sh = 255
     _df_vl = 120
     _df_vh = 255
@@ -106,11 +106,12 @@ class AutoExposureAlgo:
     def gain_control(self):
         current_gain = self.robot.camera.gain
         new_gain =  current_gain +  self.err * self.KPg + self.prev_err * self.KDg
-        print(new_gain)
+        print("GAIN: ", new_gain)
         return new_gain
     def exposure_control(self):
         current_exposure = self.robot.camera.exposure_ms
         new_exposure =  current_exposure +  self.err * self.KPe + self.prev_err * self.KDe
+        print("EXPOSURE: ", new_exposure)
         return new_exposure
 
 
@@ -126,7 +127,7 @@ class AutoExposureAlgo:
         raw_img = np.array(raw_image)
         g = raw_img[:,:,1]
         (mu, sigma) =  norm.fit(g.ravel())
-        print("GAUSSIAN FIT: ", mu,sigma)
+#        print("GAUSSIAN FIT: ", mu,sigma)
         self.err = self.target_mu -  mu
         current_exposure = self.robot.camera.exposure_ms
         current_gain = self.robot.camera.gain
@@ -240,7 +241,7 @@ class BallDetector:
         #print("Detected ",detected)
         distance = None
         if detected:
-            print(center,rad)
+            #print(center,rad)
             ret, rvecs, tvecs = get_ball_pnp(center, rad)
             if ret:
                 distance = np.linalg.norm(tvecs)
@@ -345,11 +346,12 @@ def scan_for_ball(angle, scan_speed=_df_scan_ball_speed):
     pause(0.5)
     angle *= -1
     robot = easy_cozmo._robot
-
+    _move_head(degrees(-11))
     action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed))
     while( not is_stable_detection()):
             if action.is_completed:
-                    break
+                print("Action completed")
+                break
             time.sleep(.2)
     try:
             while action.is_running:
@@ -361,6 +363,7 @@ def scan_for_ball(angle, scan_speed=_df_scan_ball_speed):
             print(e)
             traceback.print_exc()
             say_error("Scan for ball failed")
+    move_head_looking_forward()
     return is_stable_detection()
 
 def compute_hor_dev():
@@ -384,7 +387,7 @@ def last_err():
     if len(errors_n) == 1:
         return errors_n[0]
     e = np.mean(np.array(errors_n[-2:]))
-    print("last_error ", e)
+    #_debug("last_error ", e)
     return e
 
 def is_ball_visible():
@@ -404,7 +407,7 @@ def distance_to_ball():
     """
     if not init_ball_detection():
         say_error("Ball detection can't be initilized")
-        return False
+        return None
 
     if not is_stable_detection():
         say_error("Ball not detected")
@@ -485,9 +488,11 @@ def __align_with_ball():
     return abs(err) <6
 
 def set_camera_for_ball():
+
     robot = easy_cozmo._robot
     if _ball_detector is not None and _ball_detector.is_autoexposure_enabled():
         return
+
     robot.camera.image_stream_enabled = False
     robot.camera.enable_auto_exposure(False)
     robot.camera.set_manual_exposure(_df_exp,_df_gain)
@@ -497,10 +502,10 @@ def set_camera_for_ball():
     robot.camera.image_stream_enabled = True
 
 def set_camera_for_cube():
-    #return
+    return
     robot = easy_cozmo._robot
     robot.camera.image_stream_enabled = False
-    #robot.camera.enable_auto_exposure(True)
+    robot.camera.enable_auto_exposure(True)
     #robot.camera.set_manual_exposure(30,2)
     #robot.set_head_light(True)
     robot.camera.color_image_enabled = False
@@ -568,12 +573,14 @@ def align_with_ball():
 def fix_virtual_ball_in_world(position, ball_diameter=40):
     robot = easy_cozmo._robot
     pose = Pose(position[0], position[1], 0, angle_z=degrees(0))
+    pose.origin_id = robot.pose.origin_id
     robot.world.delete_fixed_custom_objects()
     pause(0.5)
     print("Creating virtual ball @ ", pose)
     fixed_object = robot.world.create_custom_fixed_object(pose, ball_diameter,
                                                           ball_diameter,
-                                                          ball_diameter)
+                                                          ball_diameter,
+                                                          relative_to_robot=True)
     if not fixed_object:
         say_error("Can't create fixed object")
 
@@ -599,8 +606,12 @@ def align_ball_and_cube(cube_id):
                 say_error("Can't estimate distance")
                 return False
             set_camera_for_cube()
-            if scan_for_cube_by_id(360, cube_id):
-                cube = _get_visible_cube_by_id(cube_id)
+            cube = None
+            cube =  _get_localized_cube_by_id(cube_id)
+            if cube is None:
+                if scan_for_cube_by_id(360, cube_id):
+                    cube = _get_visible_cube_by_id(cube_id)
+            if cube is not None:
                 rel_pose = _get_relative_pose(cube.pose, robot.pose)
                 print("RELATIVE POSE ", rel_pose)
                 odom_pose = get_odom_pose()
@@ -665,12 +676,22 @@ def _kick1(distance=240, ball_diam=40, speed=200):
 
     pause(dur)
     robot.stop_all_motors()
+    return True
 
-def kick_ball(distance=240, ball_diam=40):
+def kick_ball(distance=100, ball_diam=40):
     _kick1(distance=distance, ball_diam=ball_diam)
 
-def kick(distance=240, ball_diam=40):
-    _kick1(distance=distance, ball_diam=ball_diam)
+def kick(distance=100, ball_diam=40):
+    if center_ball():
+        d = distance_to_ball()
+        print("d = ",d)
+        if d is None:
+            say_error("No ball found")
+            return False
+        return _kick1(distance=d+100, ball_diam=ball_diam)
+    else:
+        say_error("No ball found")
+        return False
 
 def touch_ball(distance=200, ball_diam=40):
     _kick1(distance=distance, ball_diam=ball_diam, speed=100)
@@ -816,3 +837,21 @@ def _align_ball_and_goal():
         say_error("Can't find goal")
         return False
     return True
+
+def scan_for_left_pole(angle):
+    return scan_for_cube_by_id(angle, 1)
+
+def scan_for_right_pole(angle):
+    return scan_for_cube_by_id(angle, 2)
+
+def distance_to_left_pole():
+    return distance_to_cube(1)
+
+def distance_to_right_pole():
+    return distance_to_cube(2)
+
+def align_ball_and_left_pole():
+    return align_ball_and_cube(1)
+
+def align_ball_and_right_pole():
+    return align_ball_and_cube(2)
