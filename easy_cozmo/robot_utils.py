@@ -49,3 +49,38 @@ def disable_head_light():
     """
 
     easy_cozmo._robot.set_head_light(False)
+
+
+def cosine(angle):
+    import math
+    return math.cos(math.radians(angle))
+
+def sine(angle):
+    import math
+    return math.sin(math.radians(angle))
+
+def tan(angle):
+    import math
+    return math.tan(math.radians(angle))
+
+def asine(val):
+    import math
+    if val > 1.0:
+        if val < 1.1:
+            print("WARNING: asine of value greater than one, using one instead")
+            val=1
+        else:
+            say_error("Invalid value for math function arc sine")
+            return None
+    print("val=",val)
+    return math.degrees(math.asin(val))
+
+def acosine(val):
+    import math
+    print("acosine {}".format(val))
+    rad = math.acos(val)
+    return math.degrees(rad)
+
+def atan(x,y):
+    import math
+    return math.degrees(math.atan2(y,x))
