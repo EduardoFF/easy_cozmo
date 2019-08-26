@@ -20,8 +20,8 @@ sys.setrecursionlimit(1500)
 
 # -- Project information -----------------------------------------------------
 
-project = 'Mindcraft - Treasure Hunt with Cozmo'
-copyright = '2018, Eduardo Feo-Flushing'
+project = 'easy_cozmo: python wrappers for cozmo\'s SDK'
+copyright = '2019, Eduardo Feo-Flushing'
 author = 'Eduardo Feo-Flushing'
 
 # The short X.Y version

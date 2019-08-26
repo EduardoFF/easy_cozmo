@@ -17,7 +17,7 @@ A minimal application looks something like this:
 
 So what did that code do?
 
-1. First we imported the module :module:`mindcraft_treasure_hunt_cozmo`
+1. First we imported the module :module:`easy_cozmo`
 2. Next we define a function that will represent our script.
 3. Inside the function we use the :meth:`~say` make Cozmo saying "hello".
 4. Lastly, in the main part of the file, we use the

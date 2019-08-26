@@ -1,40 +1,40 @@
 .. _functions:
 
-The mindcraft-treasure-hunt-cozmo Package
+The easy_cozmo Package
 ===========================================
 
 Running a program in Cozmo
 ---------------------------
-.. automodule:: mindcraft_treasure_hunt_cozmo.mindcraft
+.. automodule:: easy_cozmo.mindcraft
    :members:
    :undoc-members:
 
 Basic movements
 ---------------------------------------------
-.. automodule:: mindcraft_treasure_hunt_cozmo.movements
+.. automodule:: easy_cozmo.movements
    :members:
    :undoc-members:
 
 Making Cozmo speak
 ----------------------------------
-.. automodule:: mindcraft_treasure_hunt_cozmo.say
+.. automodule:: easy_cozmo.say
    :members:
    :undoc-members:
 
 Actions with cubes
 --------------------
-.. automodule:: mindcraft_treasure_hunt_cozmo.actions_with_cubes
+.. automodule:: easy_cozmo.actions_with_cubes
    :members:
    :undoc-members:
 
 Making Cozmo identifying (familiar) faces
 ---------------------------------------------
-.. automodule:: mindcraft_treasure_hunt_cozmo.actions_with_faces
+.. automodule:: easy_cozmo.actions_with_faces
    :members:
    :undoc-members:
 
 Misc functions
 ---------------------------------------------
-.. automodule:: mindcraft_treasure_hunt_cozmo.robot_utils
+.. automodule:: easy_cozmo.robot_utils
    :members:
    :undoc-members:
