@@ -23,3 +23,5 @@ Documentation
 
 
 Take a look at the [documentation](http://easy-cozmo.readthedocs.org)
+
+[![Documentation Status](https://readthedocs.org/projects/easy-cozmo/badge/?version=latest)](https://easy-cozmo.readthedocs.io/en/latest/?badge=latest)
