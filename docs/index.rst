@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. image:: right-col-mindcraft-logo.jpg
+.. .. image:: right-col-mindcraft-logo.jpg
 .. .. image:: cozmo.jpeg
 
 easycozmo
@@ -19,9 +19,9 @@ API section.
 User's Guide
 ------------
 
-This part of the documentation, which is mostly prose, begins with some
-background information about the Mindcraft workshop sessions with Cozmo , then
-focuses on step-by-step instructions for the installation and usage.
+.. This part of the documentation, which is mostly prose, begins with some
+.. background information about the Mindcraft workshop sessions with Cozmo , then
+.. focuses on step-by-step instructions for the installation and usage.
 
 .. toctree::
    :maxdepth: 2
@@ -29,15 +29,3 @@ focuses on step-by-step instructions for the installation and usage.
    installation
    quickstart
    functions
-
-
-API Reference
--------------
-
-If you are looking for information on a specific function, class or
-method, this part of the documentation is for you.
-
-.. toctree::
-   :maxdepth: 2
-
-   source/modules

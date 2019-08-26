@@ -5,7 +5,7 @@ The easy_cozmo Package
 
 Running a program in Cozmo
 ---------------------------
-.. automodule:: easy_cozmo.mindcraft
+.. automodule:: easy_cozmo.easy_cozmo
    :members:
    :undoc-members:
 

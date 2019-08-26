@@ -6,7 +6,9 @@ Installation
 Python Version
 --------------
 
-We recommend using the latest version of Python 3.
+We recommend using the latest version of Python 3::
+
+  pip install easy_cozmo
 
 Dependencies
 ------------
@@ -18,7 +20,7 @@ Optional dependencies
 ~~~~~~~~~~~~~~~~~~~~~
 
 These distributions will not be installed automatically. This library will
-detect and use them if you install them.
+detect and use them only if you install them.
 
 * `reindent`_ provides automatic reindentation.
 
@@ -27,7 +29,8 @@ detect and use them if you install them.
 Configuring Sublime 3 to run programs with the pycozmo tool
 -------------------------------------------------------------
 
-- Windows
+Windows
+~~~~~~~~~
 
 1. Add the bin folder to the PATH variable
 
