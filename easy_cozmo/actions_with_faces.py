@@ -183,7 +183,12 @@ def disable_facial_expression_recognition():
         easy_cozmo._robot.enable_facial_expression_estimation(enable=False)
 
 def wait_for_a_smiling_face_visible(timeout=False):
-        """****
+        """**Look for a smiling expression**
+
+        :param timeout: amount of time, in seconds, to wait for a smiling face. If zero, false, or None, no waiting time is used and instant check is done
+
+        :type timeout: int
+
         """
         enable_facial_expression_recognition()
         start_time = time.time()
