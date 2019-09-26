@@ -1,5 +1,12 @@
 from easy_cozmo import *
 from cozmo.util import degrees, Pose, distance_mm, speed_mmps
+
+"""
+Task: Kick
+
+last time tested:2019-09-23
+"""
+
 def cozmo_program():
     if scan_for_ball(360):
         if align_with_ball():

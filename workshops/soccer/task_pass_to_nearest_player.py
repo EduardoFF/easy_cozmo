@@ -2,7 +2,8 @@ from easy_cozmo import *
 from cozmo.util import degrees, Pose, distance_mm, speed_mmps
 from easy_cozmo.ball_detector import _align_ball_and_goal
 
-""" Task: pass to closest player
+"""
+Task: pass to nearest player
 
 steps:
 1 - scan for cube 1, store distance in variable

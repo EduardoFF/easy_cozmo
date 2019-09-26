@@ -12,24 +12,26 @@ from PIL import Image, ImageDraw, ImageFont
 from . import easy_cozmo
 from .movements import _move_head, move_lift_ground,_execute_go_to_pose, set_wheels_speeds, stop, move_head_looking_forward
 from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians
-from cozmo.objects import CustomObject, CustomObjectMarkers, CustomObjectTypes
+from cozmo.objects import CustomObject, CustomObjectMarkers, CustomObjectTypes, CustomObjectMarkers
 from .robot_utils import pause
 from .robot_utils import enable_head_light, disable_head_light
 from .say import *
 import time
 from .odometry import *
 from .actions_with_cubes import scan_for_cube_by_id, _get_visible_cube_by_id, _get_relative_pose, _get_localized_cube_by_id,distance_to_cube
-from .actions_with_custom_markers import scan_for_marker_by_id, _get_visible_marker_by_id, center_marker
+from .actions_with_custom_markers import scan_for_marker_by_id, _get_visible_marker_by_id, center_marker, _get_localized_marker_by_id, distance_to_marker
 _ball_detector = None
 _df_scan_ball_speed = 17 #in degrees
 _at_home = False
 _ball_detection_initialized = False
 
-
+_post_marker_registered = False
 _is_marker_registered = False
 _marker_type = CustomObjectMarkers.Circles2
 _marker_size = 120
 _marker_id = CustomObjectTypes.CustomType01
+_left_post_marker_id = CustomObjectTypes.CustomType02
+_right_post_marker_id = CustomObjectTypes.CustomType03
 _marker_height = 150
 _last_marker_obj = None
 if _at_home:
@@ -55,12 +57,12 @@ if _at_home:
 else:
     _df_hl = 0
     _df_hh = 11
-    _df_sl = 160
+    _df_sl = 122#160
     _df_sh = 255
     _df_vl = 120
     _df_vh = 255
     _df_gain = 1
-    _df_exp = 1
+    _df_exp = 15
 
     """
     _df_hl = 0
@@ -90,7 +92,7 @@ _cam_dist=np.array([_k1,_k2,_p1,_p2])
 class AutoExposureAlgo:
     def __init__(self, robot):
         self.robot = robot
-        self.KPe = 0.05
+        self.KPe = 0.005
         self.KIe = 0.01
         self.KDe = self.KPe
         self.KPg = 0.0001
@@ -99,10 +101,18 @@ class AutoExposureAlgo:
 
         self.prev_mu = None
         self.prev_sigma = None
-        self.target_mu = 100
+        self.target_mu = 140
         self.prev_err = 0
         self.rate = 2
         self.cnt = 0
+        self.current_exposure = self.robot.camera.exposure_ms
+        self.current_gain = self.robot.camera.gain
+
+
+    def set_target(self, tgt):
+#        return
+        self.target_mu = tgt
+
     def gain_control(self):
         current_gain = self.robot.camera.gain
         new_gain =  current_gain +  self.err * self.KPg + self.prev_err * self.KDg
@@ -121,7 +131,7 @@ class AutoExposureAlgo:
 
         self.cnt +=1
         if self.cnt <= self.rate:
-            return
+            return None, None
         self.cnt = 0
 
         raw_img = np.array(raw_image)
@@ -129,11 +139,17 @@ class AutoExposureAlgo:
         (mu, sigma) =  norm.fit(g.ravel())
 #        print("GAUSSIAN FIT: ", mu,sigma)
         self.err = self.target_mu -  mu
-        current_exposure = self.robot.camera.exposure_ms
-        current_gain = self.robot.camera.gain
+        #current_exposure = self.robot.camera.exposure_ms
+        #current_gain = self.robot.camera.gain
+        current_gain = self.current_gain
+        current_exposure = self.current_exposure
+        print("C EXPOSURE ", current_exposure)
+        print("C GAIN ", current_gain)
 
         new_gain = current_gain
         new_exposure = current_exposure
+        print("ERR ", self.err)
+        # 5 units of error
         if abs(self.err)/self.target_mu > 0.1:
             exposure_saturated = current_exposure >= self.robot.camera.config.max_exposure_time_ms or current_exposure <= self.robot.camera.config.min_exposure_time_ms
             if abs(new_gain - 1.0) > 0.1 and exposure_saturated:
@@ -152,7 +168,12 @@ class AutoExposureAlgo:
                 new_gain = self.robot.camera.config.max_gain
             if new_gain < self.robot.camera.config.min_gain:
                 new_gain = self.robot.camera.config.min_gain
-            self.robot.camera.set_manual_exposure(new_exposure, new_gain)
+            s_exposure = round(new_exposure)
+            self.current_exposure = new_exposure
+            s_gain = round(new_gain * 100) / 100.
+            self.current_gain = new_gain
+            print("SETTING MANUAL EXPOSURE", new_exposure, new_gain)
+            self.robot.camera.set_manual_exposure(s_exposure, s_gain)
         self.prev_err = self.err
         return new_gain, new_exposure
 
@@ -294,23 +315,42 @@ def init_ball_detection():
     _initialize_ball_detector()
     initialize_odometry()
     _ball_detection_initialized = True
-    pause(1)
     return _ball_detection_initialized
+
+def init_post_marker_registration():
+    global _post_marker_registered
+    robot = easy_cozmo._robot
+    if _post_marker_registered:
+        return True
+
+    robot.world.define_custom_cube(_left_post_marker_id,
+                                              CustomObjectMarkers.Circles3,
+                                              49,
+                                              45, 45, True)
+    robot.world.define_custom_cube(_right_post_marker_id,
+                                              CustomObjectMarkers.Diamonds3,
+                                              49,
+                                              45, 45, True)
+
+    _post_marker_registered = True
+    pause(2)
+
+
 
 def _initialize_ball_detector():
     global _ball_detector
     robot = easy_cozmo._robot
     set_camera_for_ball()
-#    robot.camera.set_manual_exposure(3,0.8)
+    robot.camera.set_manual_exposure(3,0.8)
     robot.set_head_angle(Angle(degrees=4)).wait_for_completed()
     _ball_detector = BallDetector(robot)
 
 def is_stable_detection():
     norms = [np.linalg.norm(np.array([c[0],c[1]])) for c in _ball_detector.img_centers if c is not None]
     rads = np.array([r for r in _ball_detector.img_radius if r is not None])
-    print("norms",norms)
+    #print("norms",norms)
     stddev=np.std(norms)
-    print("stddev",stddev)
+    #print("stddev",stddev)
     if len(norms) > 4 and stddev < 20 and np.std(rads) < 5:
         return True
     return False
@@ -343,10 +383,11 @@ def scan_for_ball(angle, scan_speed=_df_scan_ball_speed):
         say_error("Ball detection can't be initilized")
         return False
 
-    pause(0.5)
+
     angle *= -1
     robot = easy_cozmo._robot
     _move_head(degrees(-11))
+    pause(0.5)
     action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed))
     while( not is_stable_detection()):
             if action.is_completed:
@@ -363,7 +404,6 @@ def scan_for_ball(angle, scan_speed=_df_scan_ball_speed):
             print(e)
             traceback.print_exc()
             say_error("Scan for ball failed")
-    move_head_looking_forward()
     return is_stable_detection()
 
 def compute_hor_dev():
@@ -381,7 +421,7 @@ def compute_hor_dev():
 
 def last_err():
     errors_n = [(160 - c[0]) for c in _ball_detector.img_centers if c is not None]
-    print("errors_nx ", errors_n)
+    #print("errors_nx ", errors_n)
     if len(errors_n) == 0:
         return None
     if len(errors_n) == 1:
@@ -491,17 +531,22 @@ def set_camera_for_ball():
 
     robot = easy_cozmo._robot
     if _ball_detector is not None and _ball_detector.is_autoexposure_enabled():
+        _ball_detector.autoexposure_algo.set_target(120)
         return
 
     robot.camera.image_stream_enabled = False
     robot.camera.enable_auto_exposure(False)
-    robot.camera.set_manual_exposure(_df_exp,_df_gain)
+    #robot.camera.set_manual_exposure(_df_exp,_df_gain)
     robot.set_head_light(False)
     robot.camera.color_image_enabled = True
     pause(1)
     robot.camera.image_stream_enabled = True
 
 def set_camera_for_cube():
+    if _ball_detector is not None and _ball_detector.is_autoexposure_enabled():
+        _ball_detector.autoexposure_algo.set_target(140)
+        return
+
     return
     robot = easy_cozmo._robot
     robot.camera.image_stream_enabled = False
@@ -588,6 +633,7 @@ def fix_virtual_ball_in_world(position, ball_diameter=40):
 
 
 def center_ball():
+    _move_head(degrees(-11))
     return align_with_ball2()
 
 def align_ball_and_cube(cube_id):
@@ -667,6 +713,86 @@ def align_ball_and_cube(cube_id):
         say_error("Can't find ball")
         return False
     return True
+
+
+def align_ball_and_marker(marker_id):
+    if not init_ball_detection():
+        say_error("Ball detection can't be initilized")
+        return False
+
+    robot = easy_cozmo._robot
+    if scan_for_ball(360):
+        print("FOUND BALL")
+        if align_with_ball2():
+            reset_odometry()
+            print("ALIGNED WITH BALL")
+            distance = distance_to_ball()
+            if distance == None:
+                say_error("Can't estimate distance")
+                return False
+            set_camera_for_cube()
+            marker = None
+            marker =  _get_localized_marker_by_id(marker_id)
+            if marker is None:
+                if scan_for_marker_by_id(360, marker_id):
+                    marker = _get_visible_marker_by_id(marker_id)
+            if marker is not None:
+                rel_pose = _get_relative_pose(marker.pose, robot.pose)
+                print("RELATIVE POSE ", rel_pose)
+                odom_pose = get_odom_pose()
+                print("ODOM POSE ", odom_pose)
+                alpha = odom_pose.rotation.angle_z.radians
+                ball_pose = (distance*math.cos(-1*alpha), distance*math.sin(-1*alpha))
+                print("BALL POSE ", ball_pose)
+                marker_pose = (rel_pose.position.x, rel_pose.position.y)
+                print("MARKER POSE ", marker_pose)
+                angle = math.atan2(ball_pose[1]-marker_pose[1], ball_pose[0]-marker_pose[0])
+                dist = 100
+
+                new_pose = (ball_pose[0] + dist*math.cos(angle),
+                            ball_pose[1] + dist*math.sin(angle))
+                fix_virtual_ball_in_world(ball_pose, 60)
+                print("GOING TO ",new_pose)
+                pose = Pose(new_pose[0], new_pose[1], 0, angle_z=radians(angle+math.pi))
+                ret = _execute_go_to_pose(pose)
+                if not ret:
+                    return False
+                if align_with_ball2():
+                    rel_pose = _get_relative_pose(marker.pose, robot.pose)
+                    print("2ND RELATIVE POSE ", rel_pose)
+                    distance = distance_to_ball()
+                    if distance == None:
+                        say_error("Can't estimate distance")
+                        return False
+
+                    ball_pose = (distance, 0)
+                    print("BALL POSE ", ball_pose)
+                    marker_pose = (rel_pose.position.x, rel_pose.position.y)
+                    print("MARKER POSE ", marker_pose)
+                    angle = math.atan2(ball_pose[1]-marker_pose[1], ball_pose[0]-marker_pose[0])
+                    dist = 100
+
+                    new_pose = (ball_pose[0] + dist*math.cos(angle),
+                                ball_pose[1] + dist*math.sin(angle))
+                    fix_virtual_ball_in_world(ball_pose, 60)
+                    print("GOING TO ",new_pose)
+                    pose = Pose(new_pose[0], new_pose[1], 0, angle_z=radians(angle+math.pi))
+                    ret = _execute_go_to_pose(pose)
+                    if not ret:
+                        return False
+                    else:
+                        return True
+            else:
+                say_error("Can't find marker {}".format(marker_id))
+                return False
+        else:
+            say_error("Can't align with ball")
+            return False
+    else:
+        say_error("Can't find ball")
+        return False
+    return True
+
 
 def _kick1(distance=240, ball_diam=40, speed=200):
     robot = easy_cozmo._robot
@@ -838,20 +964,32 @@ def _align_ball_and_goal():
         return False
     return True
 
-def scan_for_left_pole(angle):
-    return scan_for_cube_by_id(angle, 1)
+def scan_for_left_post(angle):
+#    init_post_marker_registration()
+    return scan_for_cube_by_id(360, 1)
+#    return scan_for_marker_by_id(angle, _left_post_marker_id , use_distance_threshold=False)
 
-def scan_for_right_pole(angle):
-    return scan_for_cube_by_id(angle, 2)
+def scan_for_right_post(angle):
+#    init_post_marker_registration()
+    return scan_for_cube_by_id(360, 2)
+#    return scan_for_marker_by_id(angle, _right_post_marker_id , use_distance_threshold=False)
 
-def distance_to_left_pole():
+def distance_to_left_post():
+#    init_post_marker_registration()
     return distance_to_cube(1)
+#    return distance_to_marker(_left_post_marker_id)
 
-def distance_to_right_pole():
+def distance_to_right_post():
+#    init_post_marker_registration()
     return distance_to_cube(2)
+#    return distance_to_marker(_right_post_marker_id)
 
-def align_ball_and_left_pole():
+def align_ball_and_left_post():
+#    init_post_marker_registration()
     return align_ball_and_cube(1)
+#    return align_ball_and_marker(_left_post_marker_id)
 
-def align_ball_and_right_pole():
+def align_ball_and_right_post():
+#    init_post_marker_registration()
     return align_ball_and_cube(2)
+#    return align_ball_and_marker(_right_post_marker_id)

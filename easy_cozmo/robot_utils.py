@@ -1,6 +1,6 @@
 import time
 from . import easy_cozmo
-
+from .say import *
 
 def enable_camera_settings_for_bright_light():
     robot = easy_cozmo._robot
@@ -65,6 +65,7 @@ def tan(angle):
 
 def asine(val):
     import math
+    print("val=",val)
     if val > 1.0:
         if val < 1.1:
             print("WARNING: asine of value greater than one, using one instead")

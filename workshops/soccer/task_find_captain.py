@@ -1,17 +1,23 @@
 from easy_cozmo import *
 from cozmo.util import degrees, Pose, distance_mm, speed_mmps
-def cozmo_program():
 
-    i=2
+"""
+Task: Find the captain
+
+
+"""
+
+def cozmo_program():
+    i=3
     while i < 3:
+        move_forward(20)
+        rotate_left(90)
+        move_forward(15)
         rotate_left(90)
         move_forward(20)
         rotate_left(90)
-        move_forward(14)
+        move_forward(15)
         rotate_left(90)
-        move_forward(20)
-        rotate_left(90)
-        move_forward(14)
         if i==0:
             say("First lap")
         elif i==1:

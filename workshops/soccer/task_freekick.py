@@ -18,15 +18,15 @@ def angle_to_rot(x1,x2, delta):
 
 
 def cozmo_program():
-    if align_ball_and_left_pole():
-        if scan_for_right_pole(360):
-            d1 = distance_to_right_pole()
+    if align_ball_and_left_post():
+        if scan_for_right_post(360):
+            d1 = distance_to_right_post()
             print("d1 = ", d1)
             if scan_for_ball(360):
                 if align_with_ball():
                     move_backward(delta/10)
-                    if scan_for_right_pole(360):
-                        d2 = distance_to_right_pole()
+                    if scan_for_right_post(360):
+                        d2 = distance_to_right_post()
                         print("d2 = ", d2)
                         if scan_for_ball(360):
                             if align_with_ball():
@@ -39,7 +39,9 @@ def cozmo_program():
                             else:
                                 say("I cant align with the ball again")
                         else:
-                            say("I cant find the ball again")
+                            say("I cant find the ball the second again")
+            else:
+                say("I cant find the ball the first time again")
 
 
 

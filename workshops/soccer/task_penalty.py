@@ -1,8 +1,8 @@
 from easy_cozmo import *
 from cozmo.util import degrees, Pose, distance_mm, speed_mmps
 def cozmo_program():
-    if scan_for_left_pole(360):
-        if align_ball_and_left_pole():
+    if scan_for_left_post(360):
+        if align_ball_and_left_post():
             rotate_left(48.5)
             move_forward(6.6)
             rotate_right(90)
@@ -11,8 +11,8 @@ def cozmo_program():
             say("Goal!")
             show_happy()
     else:
-        if scan_for_right_pole(360):
-            if align_ball_and_right_pole():
+        if scan_for_right_post(360):
+            if align_ball_and_right_post():
                 rotate_right(48.5)
                 move_forward(6.6)
                 rotate_left(90)
