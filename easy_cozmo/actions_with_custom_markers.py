@@ -167,7 +167,7 @@ def align_with_nearest_marker(distance= df_align_distance,
 
 
 def center_marker(marker_id,
-                  use_distance_threshold=df_use_headlight_for_scan_object):
+                  use_distance_threshold=df_use_distance_threshold_for_objects):
         robot = easy_cozmo._robot
         marker = _get_visible_marker_by_id(marker_id,
                                            use_distance_threshold=use_distance_threshold)
@@ -183,3 +183,44 @@ def center_marker(marker_id,
         pose = Pose(0, 0, 0, angle_z=radians(angle))
         ret = _execute_go_to_pose(pose)
         return ret
+
+
+def distance_to_marker(marker_id, use_distance_threshold=df_use_distance_threshold_for_objects):
+        robot = easy_cozmo._robot
+        marker = _get_visible_marker_by_id(marker_id,
+                                           use_distance_threshold=use_distance_threshold)
+        if marker is None:
+                _say_error("I can't see marker ", marker_id)
+                return False
+
+        translation = robot.pose - marker.pose
+        dst = translation.position.x ** 2 + translation.position.y ** 2
+        dst = dst ** 0.5
+        return dst
+
+""" returns marker object, not necessarily visible """
+def _get_localized_marker_by_id(marker_id):
+        robot = easy_cozmo._robot
+        # TODO: check validity of marker_id
+        print(robot.world.custom_objects)
+        marker = None
+        for (id, m) in robot.world.custom_objects.items():
+                print("object_type ", m.object_type)
+                if m.object_type == marker_id:
+                        print("Found it")
+                        print(m)
+                        marker = m
+                        break
+        if marker is not None:
+                if marker.pose is not None:
+                        if marker.pose.origin_id == -1:
+                                return None
+                        if marker.pose.origin_id == robot.pose.origin_id:
+                                return marker
+                else:
+                        print("Marker pose is invalid")
+                        return None
+        else:
+                print("MARKER NOT LOCALIZED")
+
+        return None
