@@ -127,7 +127,7 @@ class AutoExposureAlgo:
 
     def proc_image(self,raw_image):
         from scipy.stats import norm
-        import matplotlib.mlab as mlab
+        #import matplotlib.mlab as mlab
 
         self.cnt +=1
         if self.cnt <= self.rate:
