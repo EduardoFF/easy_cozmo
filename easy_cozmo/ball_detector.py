@@ -107,6 +107,7 @@ class AutoExposureAlgo:
         self.cnt = 0
         self.current_exposure = self.robot.camera.exposure_ms
         self.current_gain = self.robot.camera.gain
+        self.stabilized = False
 
 
     def set_target(self, tgt):
@@ -116,12 +117,12 @@ class AutoExposureAlgo:
     def gain_control(self):
         current_gain = self.robot.camera.gain
         new_gain =  current_gain +  self.err * self.KPg + self.prev_err * self.KDg
-        print("GAIN: ", new_gain)
+        #print("GAIN: ", new_gain)
         return new_gain
     def exposure_control(self):
         current_exposure = self.robot.camera.exposure_ms
         new_exposure =  current_exposure +  self.err * self.KPe + self.prev_err * self.KDe
-        print("EXPOSURE: ", new_exposure)
+        #print("EXPOSURE: ", new_exposure)
         return new_exposure
 
 
@@ -143,12 +144,12 @@ class AutoExposureAlgo:
         #current_gain = self.robot.camera.gain
         current_gain = self.current_gain
         current_exposure = self.current_exposure
-        print("C EXPOSURE ", current_exposure)
-        print("C GAIN ", current_gain)
+        #print("C EXPOSURE ", current_exposure)
+        #print("C GAIN ", current_gain)
 
         new_gain = current_gain
         new_exposure = current_exposure
-        print("ERR ", self.err)
+        #print("ERR ", self.err)
         # 5 units of error
         if abs(self.err)/self.target_mu > 0.1:
             exposure_saturated = current_exposure >= self.robot.camera.config.max_exposure_time_ms or current_exposure <= self.robot.camera.config.min_exposure_time_ms
@@ -172,8 +173,10 @@ class AutoExposureAlgo:
             self.current_exposure = new_exposure
             s_gain = round(new_gain * 100) / 100.
             self.current_gain = new_gain
-            print("SETTING MANUAL EXPOSURE", new_exposure, new_gain)
+            #print("SETTING MANUAL EXPOSURE", new_exposure, new_gain)
             self.robot.camera.set_manual_exposure(s_exposure, s_gain)
+        else:
+            self.stabilized = True
         self.prev_err = self.err
         return new_gain, new_exposure
 
@@ -232,6 +235,8 @@ class BallDetector:
 
     def is_autoexposure_enabled(self):
         return self.autoexposure_algo is not None
+    def is_autoexposure_stabilized(self):
+        return self.is_autoexposure_enabled() and self.autoexposure_algo.stabilized
 
 
     def on_img(self, event, *, image:cozmo.world.CameraImage, **kw):
@@ -338,12 +343,20 @@ def init_post_marker_registration():
 
 
 def _initialize_ball_detector():
+    import time
     global _ball_detector
     robot = easy_cozmo._robot
     set_camera_for_ball()
-    robot.camera.set_manual_exposure(3,0.8)
-    robot.set_head_angle(Angle(degrees=4)).wait_for_completed()
+    robot.camera.set_manual_exposure(8,0.8)
+    _move_head(degrees(-11))
+    #robot.set_head_angle(Angle(degrees=4)).wait_for_completed()
     _ball_detector = BallDetector(robot)
+    tt = time.time()
+    while time.time() - tt < 5:
+        if _ball_detector.is_autoexposure_stabilized():
+            print("AUTOEXPOSURE STABILIZED")
+            break
+        time.sleep(.2)
 
 def is_stable_detection():
     norms = [np.linalg.norm(np.array([c[0],c[1]])) for c in _ball_detector.img_centers if c is not None]
@@ -408,13 +421,13 @@ def scan_for_ball(angle, scan_speed=_df_scan_ball_speed):
 
 def compute_hor_dev():
     errors_n = [(160 - c[0]) for c in _ball_detector.img_centers if c is not None]
-    print("errors_n ", errors_n)
+    #print("errors_n ", errors_n)
     if len(errors_n) > 0:
         w = []
         for i in range(len(errors_n)):
             w.append(2**i)
         e = np.mean(np.array(errors_n))
-        print("error ", e)
+        #print("error ", e)
         return e, np.std(errors_n)
     else:
         return None,None
@@ -478,7 +491,7 @@ def __align_with_ball():
         return False
     current_speed_l = 0
     current_speed_r = 0
-    print("Initial error", err)
+    #print("Initial error", err)
     timeout = False
     start_t = time.time()
     sum_error = 0
@@ -493,7 +506,7 @@ def __align_with_ball():
             say_error("Ball lost")
             return False
         if abs(err) < 5 and abs(std) < 5:
-            print("RESET")
+            #print("RESET")
             current_speed_l = 0
             current_speed_r = 0
             sum_error = 0
@@ -504,7 +517,7 @@ def __align_with_ball():
             say_error("Ball not detected")
             return False
         err = last_err()
-        print("error: ",err)
+        #print("error: ",err)
         if err is None:
             return False
         current_speed_l -= (err * KP + sum_error * KI + prev_err * KD)
@@ -513,7 +526,7 @@ def __align_with_ball():
         prev_err = err
         current_speed_l = make_speed(current_speed_l)
         current_speed_r = make_speed(current_speed_r)
-        print("speed l {:2f} r {:2f}".format(current_speed_l, current_speed_r))
+        #print("speed l {:2f} r {:2f}".format(current_speed_l, current_speed_r))
         robot.drive_wheel_motors(current_speed_l, current_speed_r)
         if time.time() > start_t + 100:
             print("TIMEOUT")
@@ -573,7 +586,7 @@ def align_with_ball2():
         err, std = compute_hor_dev()
         if err is None:
             return False
-        print("Hor dev ", err, std)
+        #print("Hor dev ", err, std)
         if abs(err) < 10 and abs(std) < 5:
             break
         err = last_err()
@@ -606,7 +619,7 @@ def align_with_ball2():
                 say_error("Scan for object failed")
         if err is None:
             return False
-        if time.time() > start_t + 100:
+        if time.time() > start_t + 30:
             print("TIMEOUT")
             timeout = True
 
@@ -621,7 +634,7 @@ def fix_virtual_ball_in_world(position, ball_diameter=40):
     pose.origin_id = robot.pose.origin_id
     robot.world.delete_fixed_custom_objects()
     pause(0.5)
-    print("Creating virtual ball @ ", pose)
+    #print("Creating virtual ball @ ", pose)
     fixed_object = robot.world.create_custom_fixed_object(pose, ball_diameter,
                                                           ball_diameter,
                                                           ball_diameter,
@@ -643,10 +656,10 @@ def align_ball_and_cube(cube_id):
 
     robot = easy_cozmo._robot
     if scan_for_ball(360):
-        print("FOUND BALL")
+        #print("FOUND BALL")
         if align_with_ball2():
             reset_odometry()
-            print("ALIGNED WITH BALL")
+            #print("ALIGNED WITH BALL")
             distance = distance_to_ball()
             if distance == None:
                 say_error("Can't estimate distance")
@@ -659,44 +672,44 @@ def align_ball_and_cube(cube_id):
                     cube = _get_visible_cube_by_id(cube_id)
             if cube is not None:
                 rel_pose = _get_relative_pose(cube.pose, robot.pose)
-                print("RELATIVE POSE ", rel_pose)
+                #print("RELATIVE POSE ", rel_pose)
                 odom_pose = get_odom_pose()
-                print("ODOM POSE ", odom_pose)
+                #print("ODOM POSE ", odom_pose)
                 alpha = odom_pose.rotation.angle_z.radians
                 ball_pose = (distance*math.cos(-1*alpha), distance*math.sin(-1*alpha))
-                print("BALL POSE ", ball_pose)
+                #print("BALL POSE ", ball_pose)
                 cube_pose = (rel_pose.position.x, rel_pose.position.y)
-                print("CUBE POSE ", cube_pose)
+                #print("CUBE POSE ", cube_pose)
                 angle = math.atan2(ball_pose[1]-cube_pose[1], ball_pose[0]-cube_pose[0])
                 dist = 100
 
                 new_pose = (ball_pose[0] + dist*math.cos(angle),
                             ball_pose[1] + dist*math.sin(angle))
                 fix_virtual_ball_in_world(ball_pose, 60)
-                print("GOING TO ",new_pose)
+                #print("GOING TO ",new_pose)
                 pose = Pose(new_pose[0], new_pose[1], 0, angle_z=radians(angle+math.pi))
                 ret = _execute_go_to_pose(pose)
                 if not ret:
                     return False
                 if align_with_ball2():
                     rel_pose = _get_relative_pose(cube.pose, robot.pose)
-                    print("2ND RELATIVE POSE ", rel_pose)
+                    #print("2ND RELATIVE POSE ", rel_pose)
                     distance = distance_to_ball()
                     if distance == None:
                         say_error("Can't estimate distance")
                         return False
 
                     ball_pose = (distance, 0)
-                    print("BALL POSE ", ball_pose)
+                    #print("BALL POSE ", ball_pose)
                     cube_pose = (rel_pose.position.x, rel_pose.position.y)
-                    print("CUBE POSE ", cube_pose)
+                    #print("CUBE POSE ", cube_pose)
                     angle = math.atan2(ball_pose[1]-cube_pose[1], ball_pose[0]-cube_pose[0])
                     dist = 100
 
                     new_pose = (ball_pose[0] + dist*math.cos(angle),
                                 ball_pose[1] + dist*math.sin(angle))
                     fix_virtual_ball_in_world(ball_pose, 60)
-                    print("GOING TO ",new_pose)
+                    #print("GOING TO ",new_pose)
                     pose = Pose(new_pose[0], new_pose[1], 0, angle_z=radians(angle+math.pi))
                     ret = _execute_go_to_pose(pose)
                     if not ret:
@@ -722,10 +735,10 @@ def align_ball_and_marker(marker_id):
 
     robot = easy_cozmo._robot
     if scan_for_ball(360):
-        print("FOUND BALL")
+        #print("FOUND BALL")
         if align_with_ball2():
             reset_odometry()
-            print("ALIGNED WITH BALL")
+            #print("ALIGNED WITH BALL")
             distance = distance_to_ball()
             if distance == None:
                 say_error("Can't estimate distance")
@@ -738,44 +751,44 @@ def align_ball_and_marker(marker_id):
                     marker = _get_visible_marker_by_id(marker_id)
             if marker is not None:
                 rel_pose = _get_relative_pose(marker.pose, robot.pose)
-                print("RELATIVE POSE ", rel_pose)
+                #print("RELATIVE POSE ", rel_pose)
                 odom_pose = get_odom_pose()
-                print("ODOM POSE ", odom_pose)
+                #print("ODOM POSE ", odom_pose)
                 alpha = odom_pose.rotation.angle_z.radians
                 ball_pose = (distance*math.cos(-1*alpha), distance*math.sin(-1*alpha))
-                print("BALL POSE ", ball_pose)
+                #print("BALL POSE ", ball_pose)
                 marker_pose = (rel_pose.position.x, rel_pose.position.y)
-                print("MARKER POSE ", marker_pose)
+                #print("MARKER POSE ", marker_pose)
                 angle = math.atan2(ball_pose[1]-marker_pose[1], ball_pose[0]-marker_pose[0])
                 dist = 100
 
                 new_pose = (ball_pose[0] + dist*math.cos(angle),
                             ball_pose[1] + dist*math.sin(angle))
                 fix_virtual_ball_in_world(ball_pose, 60)
-                print("GOING TO ",new_pose)
+                #print("GOING TO ",new_pose)
                 pose = Pose(new_pose[0], new_pose[1], 0, angle_z=radians(angle+math.pi))
                 ret = _execute_go_to_pose(pose)
                 if not ret:
                     return False
                 if align_with_ball2():
                     rel_pose = _get_relative_pose(marker.pose, robot.pose)
-                    print("2ND RELATIVE POSE ", rel_pose)
+                    #print("2ND RELATIVE POSE ", rel_pose)
                     distance = distance_to_ball()
                     if distance == None:
                         say_error("Can't estimate distance")
                         return False
 
                     ball_pose = (distance, 0)
-                    print("BALL POSE ", ball_pose)
+                    #print("BALL POSE ", ball_pose)
                     marker_pose = (rel_pose.position.x, rel_pose.position.y)
-                    print("MARKER POSE ", marker_pose)
+                    #print("MARKER POSE ", marker_pose)
                     angle = math.atan2(ball_pose[1]-marker_pose[1], ball_pose[0]-marker_pose[0])
                     dist = 100
 
                     new_pose = (ball_pose[0] + dist*math.cos(angle),
                                 ball_pose[1] + dist*math.sin(angle))
                     fix_virtual_ball_in_world(ball_pose, 60)
-                    print("GOING TO ",new_pose)
+                    #print("GOING TO ",new_pose)
                     pose = Pose(new_pose[0], new_pose[1], 0, angle_z=radians(angle+math.pi))
                     ret = _execute_go_to_pose(pose)
                     if not ret:
@@ -810,7 +823,7 @@ def kick_ball(distance=100, ball_diam=40):
 def kick(distance=100, ball_diam=40):
     if center_ball():
         d = distance_to_ball()
-        print("d = ",d)
+        #print("d = ",d)
         if d is None:
             say_error("No ball found")
             return False
@@ -846,7 +859,7 @@ def move_head_towards_goal():
     dst = translation.position.x ** 2 + translation.position.y ** 2
     dst = dst ** 0.5
     angle = math.atan2(_marker_height - 25, dst)
-    print("HEAD ANGLE TO GOAL ", math.degrees(angle))
+    #print("HEAD ANGLE TO GOAL ", math.degrees(angle))
     _move_head(radians(angle))
 
 
@@ -855,7 +868,7 @@ def scan_for_goal(angle):
     set_camera_for_cube()
     #move_head_looking_forward()
     if _last_goal_pose_valid():
-        print("GOAL POSE VALID")
+        #print("GOAL POSE VALID")
         move_head_towards_goal()
     _move_head(degrees(10))
     if not _is_goal_marker_registered():
@@ -886,11 +899,11 @@ def _align_ball_and_goal():
     set_camera_for_cube()
     move_head_looking_forward()
     if scan_for_goal(360):
-        print("GOAL FOUND")
+        #print("GOAL FOUND")
         if center_marker(_marker_id, use_distance_threshold=False):
             move_head_looking_forward()
             reset_odometry()
-            print("ALIGNED WITH GOAL")
+            #print("ALIGNED WITH GOAL")
             distance = distance_to_goal()
             if distance == None:
                 say_error("Can't estimate distance")
@@ -906,14 +919,14 @@ def _align_ball_and_goal():
                     say_error("Can't estimate distance to ball")
                     return False
                 odom_pose = get_odom_pose()
-                print("ODOM POSE ", odom_pose)
+                #print("ODOM POSE ", odom_pose)
                 alpha = odom_pose.rotation.angle_z.radians
                 marker_pose = (distance*math.cos(-1*alpha),
                                distance*math.sin(-1*alpha))
 
-                print("MARKER POSE ", marker_pose)
+                #print("MARKER POSE ", marker_pose)
                 ball_pose = (d2, 0)
-                print("BALL POSE ", ball_pose)
+                #print("BALL POSE ", ball_pose)
                 angle = math.atan2(ball_pose[1]-marker_pose[1],
                                    ball_pose[0]-marker_pose[0])
                 dist = 100
@@ -921,7 +934,7 @@ def _align_ball_and_goal():
                 new_pose = (ball_pose[0] + dist*math.cos(angle),
                             ball_pose[1] + dist*math.sin(angle))
                 fix_virtual_ball_in_world(ball_pose, 60)
-                print("GOING TO ",new_pose)
+                #print("GOING TO ",new_pose)
                 pose = Pose(new_pose[0], new_pose[1], 0,
                             angle_z=radians(angle+math.pi))
                 ret = _execute_go_to_pose(pose)
@@ -929,16 +942,16 @@ def _align_ball_and_goal():
                     return False
                 if align_with_ball2():
                     rel_pose = _get_relative_pose(marker.pose, robot.pose)
-                    print("2ND RELATIVE POSE ", rel_pose)
+                    #print("2ND RELATIVE POSE ", rel_pose)
                     distance = distance_to_ball()
                     if distance == None:
                         say_error("Can't estimate distance")
                         return False
 
                     ball_pose = (distance, 0)
-                    print("BALL POSE ", ball_pose)
+                    #print("BALL POSE ", ball_pose)
                     marker_pose = (rel_pose.position.x, rel_pose.position.y)
-                    print("MARKER POSE ", marker_pose)
+                    #print("MARKER POSE ", marker_pose)
                     angle = math.atan2(ball_pose[1]-marker_pose[1],
                                        ball_pose[0]-marker_pose[0])
                     dist = 100
@@ -946,7 +959,7 @@ def _align_ball_and_goal():
                     new_pose = (ball_pose[0] + dist*math.cos(angle),
                                 ball_pose[1] + dist*math.sin(angle))
                     fix_virtual_ball_in_world(ball_pose, 60)
-                    print("GOING TO ",new_pose)
+                    #print("GOING TO ",new_pose)
                     pose = Pose(new_pose[0], new_pose[1], 0, angle_z=radians(angle+math.pi))
                     ret = _execute_go_to_pose(pose)
                     if not ret:

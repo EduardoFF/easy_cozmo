@@ -24,6 +24,7 @@ def color_segmentation(cvimage, **kwargs):
 
 def crop_image_for_ball(cvimage, width, height):
     import numpy as np
+    np.warnings.filterwarnings('ignore')
 
     region_of_interest_vertices = [
         (0, height),
@@ -54,35 +55,40 @@ def detect_ball(cvimage,tag=True, **kwargs):
 
 
 
-    # find contours in the mask and initialize the current
-    # (x, y) center of the ball
-    cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
-                        cv2.CHAIN_APPROX_SIMPLE)
-    cnts = imutils.grab_contours(cnts)
-    center = None
+    try:
+        # find contours in the mask and initialize the current
+        # (x, y) center of the ball
+        cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,
+                            cv2.CHAIN_APPROX_SIMPLE)
+        cnts = imutils.grab_contours(cnts)
+        center = None
 
-    # only proceed if at least one contour was found
-    if len(cnts) > 0:
-        # find the largest contour in the mask, then use
-        # it to compute the minimum enclosing circle and
-        # centroid
-        c = max(cnts, key=cv2.contourArea)
-        ((x, y), radius) = cv2.minEnclosingCircle(c)
-        M = cv2.moments(c)
-        center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+        # only proceed if at least one contour was found
+        if len(cnts) > 0:
+            # find the largest contour in the mask, then use
+            # it to compute the minimum enclosing circle and
+            # centroid
+            c = max(cnts, key=cv2.contourArea)
+            ((x, y), radius) = cv2.minEnclosingCircle(c)
 
-        # only proceed if the radius meets a minimum size
-        if radius > 10:
-            # draw the circle and centroid on the frame,
-            # then update the list of tracked points
-            if tag:
-                cv2.circle(frame, (int(x), int(y)), int(radius),(0, 255, 255), 2)
-                cv2.circle(frame, center, 5, (0, 0, 255), -1)
-            return True, frame, (int(x),int(y)), radius
+            # only proceed if the radius meets a minimum size
+            if radius > 10:
+                M = cv2.moments(c)
+                center = (int(M["m10"] / M["m00"]), int(M["m01"] / M["m00"]))
+
+                # draw the circle and centroid on the frame,
+                # then update the list of tracked points
+                if tag:
+                    cv2.circle(frame, (int(x), int(y)), int(radius),(0, 255, 255), 2)
+                    cv2.circle(frame, center, 5, (0, 0, 255), -1)
+                return True, frame, (int(x),int(y)), radius
+    except Exception as e:
+        print(e)
     return False, frame, None, None
 
 def get_ball_pnp(center, rad, **kwargs):
     import numpy as np
+    np.warnings.filterwarnings('ignore')
     import cv2 as cv
     import math
 
