@@ -727,6 +727,8 @@ def align_ball_and_cube(cube_id):
         return False
     return True
 
+def align_with_ball_and_cube(cube_id):
+    return align_ball_and_cube(cube_id)
 
 def align_ball_and_marker(marker_id):
     if not init_ball_detection():
@@ -806,6 +808,8 @@ def align_ball_and_marker(marker_id):
         return False
     return True
 
+def align_with_ball_and_marker(marker_id):
+    return align_ball_and_marker(marker_id)
 
 def _kick1(distance=240, ball_diam=40, speed=200):
     robot = easy_cozmo._robot
@@ -1006,3 +1010,10 @@ def align_ball_and_right_post():
 #    init_post_marker_registration()
     return align_ball_and_cube(2)
 #    return align_ball_and_marker(_right_post_marker_id)
+
+
+def align_with_ball_and_left_post():
+    return align_ball_and_left_post()
+
+def align_with_ball_and_right_post():
+    return align_ball_and_right_post()

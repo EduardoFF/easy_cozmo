@@ -82,6 +82,10 @@ def acosine(val):
     rad = math.acos(val)
     return math.degrees(rad)
 
-def atan(x,y):
+def _atan(x,y):
     import math
     return math.degrees(math.atan2(y,x))
+
+def atan(val):
+    import math
+    return math.degrees(math.atan(val))
