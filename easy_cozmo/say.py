@@ -46,7 +46,11 @@ def say(txtmsg, *args):
 
     txtmsg = txtmsg + ' '.join(map(str, args))
     print("SAY: "+txtmsg)
-    _robot.say_text(txtmsg).wait_for_completed()
+    try:
+        _robot.say_text(txtmsg).wait_for_completed()
+
+    except:
+        pass
 
 def _say(txtmsg, *args):
     """**Print  a simple message **
