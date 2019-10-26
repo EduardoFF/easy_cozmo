@@ -1,10 +1,11 @@
-from mindcraft_treasure_hunt_cozmo import *
+from easy_cozmo import *
+import easy_cozmo.easy_cozmo as mc
 from cozmo.util import degrees, Angle, Pose, distance_mm, speed_mmps, radians
-from mindcraft_treasure_hunt_cozmo.cube_localization import *
+from easy_cozmo.cube_localization import *
 def cozmo_program():
-    mindcraft._mycozmo.set_robot_volume(.1)
-    
-    mindcraft._mycozmo.world.define_custom_wall(CustomObjectTypes.CustomType05,
+    mc._robot.set_robot_volume(.1)
+
+    mc._robot.world.define_custom_wall(CustomObjectTypes.CustomType05,
                                                 CustomObjectMarkers.Circles3,
                                                 180, 180, 180, 180, True)
 
@@ -14,5 +15,5 @@ def cozmo_program():
        # where_am_i()
         print(get_odom_pose())
         pause(0.5)
-        
+
 run_program_with_viewer(cozmo_program)

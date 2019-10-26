@@ -70,7 +70,7 @@ def initialize_odometry(use_comm=df_use_comm):
     _traveled_distance = 0
     _heading_offset =  0
     reset_odometry()
-    mindcraft._mycozmo.add_event_handler(cozmo.robot.EvtRobotStateUpdated,
+    easy_cozmo._robot.add_event_handler(cozmo.robot.EvtRobotStateUpdated,
                                          on_motion)
 
 def set_odom_origin(x, y):

@@ -12,8 +12,8 @@ import asyncio
 import cozmo
 import math
 import sys
-from .mindcraft_defaults import *
-from . import mindcraft
+from .defaults import *
+from . import easy_cozmo
 from .movements import move_head_looking_up, move_head_looking_forward, _move_head
 from cozmo.util import degrees, Angle, Pose, distance_mm, radians
 from cozmo.objects import CustomObject, LightCube, CustomObjectTypes, CustomObjectMarkers
@@ -43,27 +43,27 @@ def initialize_cube_localization():
     reset_odometry()
     _loc_locating = False
     _loc_heading = False
-    robot = mindcraft._mycozmo
+    robot = easy_cozmo._robot
     robot.world.undefine_all_custom_marker_objects()
     robot.world.define_custom_box(CustomObjectTypes.CustomType01,
                                    CustomObjectMarkers.Circles4,  # front
                                    CustomObjectMarkers.Hexagons3,   # back
                                    CustomObjectMarkers.Diamonds3,   # top
                                    CustomObjectMarkers.Diamonds2,   # bottom
-                                   CustomObjectMarkers.Triangles4, # left
+                                   CustomObjectMarkers.Circles2, # left
                                    CustomObjectMarkers.Diamonds5, # right
-                                   44,44,44,
-                                   25, 25, True)
+                                   65,65,65,
+                                   62, 62, True)
 
     robot.world.define_custom_box(CustomObjectTypes.CustomType02,
                                    CustomObjectMarkers.Circles3,  # front
                                    CustomObjectMarkers.Hexagons5,   # back
                                    CustomObjectMarkers.Circles5,   # top
-                                   CustomObjectMarkers.Circles2,   # bottom
+                                   CustomObjectMarkers.Triangles4,   # bottom
                                    CustomObjectMarkers.Triangles2, # left
                                    CustomObjectMarkers.Diamonds4, # right
-                                   44, 44, 44,
-                                   25, 25, True)
+                                   65, 65, 65,
+                                   62, 62, True)
 
     _loc_cubes = {1: Pose(-120,200,0, angle_z = degrees(0)), \
                   2: Pose(0,540,0, angle_z = degrees(0)), \
@@ -81,14 +81,14 @@ def initialize_cube_localization():
     initialize_odometry()
     robot.add_event_handler(cozmo.objects.EvtObjectObserved,
                             on_obj_observed)
-    
-    
-    
+
+
+
 
 def distance_to(to):
-    robot = mindcraft._mycozmo
+    robot = easy_cozmo._robot
     cube_pose = _loc_cubes[to]
-        
+
     translation = robot.pose - cube_pose
     dst = translation.position.x ** 2 + translation.position.y ** 2
     dst = dst ** 0.5
@@ -97,7 +97,7 @@ def distance_to(to):
 
 def _localize_with(cube_id):
     global _loc_odom_origin
-    robot = mindcraft._mycozmo
+    robot = easy_cozmo._robot
     lpose = _loc_cubes[cube_id]
 #    print("cube ", cube_id, " @ ", lpose)
     rel_pose = _get_relative_pose(robot.pose, lpose)
@@ -105,7 +105,7 @@ def _localize_with(cube_id):
     _loc_odom_origin = _loc_cubes_origin[cube_id] + rel_pose
 #    print("new odom origin ", _loc_odom_origin)
     reset_odometry(_loc_odom_origin)
-    
+
 
 def loc_id(obj):
     if isinstance(obj, LightCube):
@@ -114,12 +114,12 @@ def loc_id(obj):
         if isinstance(obj, CustomObject):
             return obj.object_type
     return None
-    
+
 def on_obj_observed(evt, **kw):
     global _loc_heading, _loc_locating
     #if not _loc_locating and not _loc_heading:
     #    return
-    robot = mindcraft._mycozmo
+    robot = easy_cozmo._robot
     if _is_loc_cube(evt.obj):
         translation = robot.pose - evt.pose
         dst = translation.position.x ** 2 + translation.position.y ** 2
@@ -132,7 +132,7 @@ def on_obj_observed(evt, **kw):
 
 
             #print("Is location cube @ distance ", dst, " mm")
-            
+
 
 def _is_loc_cube(obj):
     if isinstance(obj, LightCube) and obj.cube_id in _loc_cubes:
@@ -147,10 +147,10 @@ def where_am_i():
     forget_when_locating = True
     angle = 360
     scan_speed = 20
-    _move_head(degrees(15))    
+    _move_head(degrees(15))
     #move_head_looking_forward()
-    """ do a full rotation while watching for cubes """    
-    robot = mindcraft._mycozmo
+    """ do a full rotation while watching for cubes """
+    robot = easy_cozmo._robot
     if forget_when_locating:
             for obj in robot.world._objects.values():
                     if _is_loc_cube(obj):
@@ -158,7 +158,7 @@ def where_am_i():
 
     _loc_locating = True
     try:
-        action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed)).wait_for_completed()                                
+        action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed)).wait_for_completed()
     except Exception as e:
             import traceback
             print(e)

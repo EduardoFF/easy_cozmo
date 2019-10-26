@@ -1,7 +1,7 @@
 from robot_tools import *
 import time
 from kbhit import KBHit
-import mindcraft_treasure_hunt_cozmo.mindcraft as mc
+import easy_cozmo.easy_cozmo as mc
 from PIL import Image, ImageDraw, ImageFont
 import sys
 
@@ -10,7 +10,7 @@ msg="IDLE"
 
 class TourAnnotator(cozmo.annotate.Annotator):
     def __init__(self):
-        super(TourAnnotator, self).__init__(mc._mycozmo.world.image_annotator)
+        super(TourAnnotator, self).__init__(mc._robot.world.image_annotator)
     def apply(self, image, scale):
         d = ImageDraw.Draw(image)
         bounds = (0, 0, image.width, image.height)
@@ -28,7 +28,7 @@ class TourAnnotator(cozmo.annotate.Annotator):
 
 def start_tour():
     global msg
-    robot = mc._mycozmo
+    robot = mc._robot
     n = read_tour('tour.txt')
     pause(1)
     initialize_nav()
@@ -57,7 +57,7 @@ def start_tour():
             if ord(c) == 27: # ESC
                 robot.abort_all_actions()
                 return
-        navigate_to2(current_loc)
+        navigate_to3(current_loc)
         while navigating():
             if risk_of_collision():
                 pause_navigation()
@@ -67,8 +67,8 @@ def start_tour():
                 if ord(c) == 27: # ESC
                     robot.abort_all_actions()
                     return
-        if navigation_successful():
-            say("", loc(current_loc))
+        if navigation_successful() or True:
+            #say("", loc(current_loc))
             #collect_reward(current_loc)
             current_loc = current_loc + 1
         else:
@@ -94,7 +94,7 @@ def cozmo_program():
     n = read_tour('tour.txt')
     initialize()
     touranno = TourAnnotator()
-    robot = mc._mycozmo
+    robot = mc._robot
     robot.world.image_annotator.add_annotator('touranno', touranno)
     kb = KBHit()
     msg="Update tour and PRESS s or S to start tour, x to EXIT"

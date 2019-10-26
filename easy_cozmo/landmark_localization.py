@@ -6,6 +6,8 @@ A very basic localization strategy based on fixed landmarks
 
 @author: Eduardo
 
+
+DEPRECATED: Use cube_localization instead
 """
 
 import asyncio
@@ -55,11 +57,11 @@ def initialize_landmark_localization():
     _loc_landmarks = {CustomObjectTypes.CustomType01: Pose(0,0,0, angle_z = degrees(0)), CustomObjectTypes.CustomType02: Pose(0,0,0, angle_z = degrees(0)) }
 
     _loc_landmarks_origin = {CustomObjectTypes.CustomType01: Pose(0,0,0, angle_z = degrees(0)), CustomObjectTypes.CustomType02: Pose(1200,0,0, angle_z = degrees(180)) }
-    
+
 
     robot.add_event_handler(cozmo.objects.EvtObjectObserved,
                             on_obj_observed)
-    
+
 
 """ NORTH is CustomType01 """
 
@@ -85,7 +87,7 @@ def distance_to(to):
         landmark_pose = _loc_landmarks[south()]
     else:
         return None
-        
+
     translation = robot.pose - landmark_pose
     dst = translation.position.x ** 2 + translation.position.y ** 2
     dst = dst ** 0.5
@@ -103,7 +105,7 @@ def _head_to(to):
     angle = 360
     scan_speed= 20
     robot = mindcraft._mycozmo
-    _move_head(degrees(15))    
+    _move_head(degrees(15))
     action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed))
     _loc_heading_to = to
     _loc_heading = True
@@ -112,12 +114,12 @@ def _head_to(to):
         if action.is_completed:
             break
         time.sleep(.2)
-        
+
     try:
         while action.is_running:
             action.abort()
             time.sleep(.5)
-                                
+
     except Exception as e:
         import traceback
         print(e)
@@ -138,9 +140,9 @@ def _localize_with(obj):
     print("robot relative pose wrt landmark ", rel_pose)
     _loc_odom_origin = _loc_landmarks_origin[obj] + rel_pose
     print("new odom origin ", _loc_odom_origin)
-    
+
     reset_odometry(_loc_odom_origin)
-    
+
 
 def on_obj_observed(evt, **kw):
     global _loc_heading, _loc_locating
@@ -167,7 +169,7 @@ def on_obj_observed(evt, **kw):
 
 
             #print("Is location landmark @ distance ", dst, " mm")
-            
+
 
 def _is_loc_landmark(obj):
     return isinstance(obj, CustomObject) and obj.object_type in _loc_landmarks
@@ -177,9 +179,9 @@ def where_am_i():
     forget_when_locating = True
     angle = 360
     scan_speed = 20
-    _move_head(degrees(15))    
+    _move_head(degrees(15))
     #move_head_looking_forward()
-    """ do a full rotation while watching for landmarks """    
+    """ do a full rotation while watching for landmarks """
     robot = mindcraft._mycozmo
     if forget_when_locating:
             for obj in robot.world._objects.values():
@@ -188,7 +190,7 @@ def where_am_i():
 
     _loc_locating = True
     try:
-        action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed)).wait_for_completed()                                
+        action = robot.turn_in_place(degrees(angle), speed=degrees(scan_speed)).wait_for_completed()
     except Exception as e:
             import traceback
             print(e)

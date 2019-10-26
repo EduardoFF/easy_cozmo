@@ -11,4 +11,4 @@ from .say import *
 from .animations import *
 from .line_detector import *
 from .odometry import *
-from .landmark_localization import *
+from .cube_localization import *
