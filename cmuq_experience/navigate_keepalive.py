@@ -97,14 +97,14 @@ def cozmo_program():
     robot = mc._robot
     robot.world.image_annotator.add_annotator('touranno', touranno)
     kb = KBHit()
-    msg="Update tour and PRESS s or S to start tour, x to EXIT"
+    msg="Update tour and PRESS l or L to load tour, x to EXIT"
     print(msg)
     while True:
         if kb.kbhit():
             c = kb.getch()
-            if ord(c) == 115 or ord(c)==83: # s or S
+            if ord(c) == 108 or ord(c)==76: # l or L
                 start_tour()
-                msg="Update tour and PRESS s or S to start tour, x to EXIT"
+                msg="Update tour and PRESS l or L to load tour, x to EXIT"
                 print(msg)
             if ord(c) == 88 or ord(c) == 120:
                 msg="Are you sure you want to exit? y/n"
