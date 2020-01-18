@@ -50,7 +50,10 @@ def start_tour():
     current_loc = 1
     start_time = time.time()
     while current_loc <= n:
-        msg = "Going to %d"%(loc(current_loc))
+        if current_loc == 2:
+            start_time = time.time()
+        elapsed_time = time.time() - start_time
+        msg = "Going to %d - TIME ELAPSED %d seconds"%(loc(current_loc), elapsed_time)
         print(msg)
         if kb.kbhit():
             c = kb.getch()
